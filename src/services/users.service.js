@@ -1,0 +1,129 @@
+const bcrypt = require('bcrypt');
+const jwt = require('../services/jwt.service');
+
+const db = require('../configs/sql.config');
+const { users } = db
+db.sequelize.sync();
+
+const saltRounds = 12;
+
+async function find() {
+    var result = await users.findAll();
+    return (result)
+}
+       
+async function findById(id) {
+    var result = await users.findOne({
+        where: { uid: id },
+    })
+
+    return (result)
+}
+
+
+async function findByUsername(username) {
+    return await Users.findOne({ username: username });
+}
+
+async function authenticated(AuthRequired) {
+    // var founded = await findByUsername(AuthRequired.username);
+    var founded = await users.findOne({
+        where: { username: AuthRequired.username }
+    })
+    if (founded) {
+        var result = await bcrypt.compare(AuthRequired.password, founded.password)
+        if (result) {
+            var user = {
+                id: founded.id,
+                name: founded.name,
+                tel: founded.tel,
+                role_id: founded.role_id,
+                username: founded.username
+            }
+            var token = jwt.signToken(user);
+            return {
+                result: true,
+                data: user,
+                token: token
+            }
+        }
+        else {
+            return {
+                result: false,
+                data: '',
+            }
+        }
+
+    }
+    else {
+        return {
+            result: false,
+            data: '',
+        }
+    }
+}
+
+async function update(body, id) {
+    result = await users.update({
+        name: body.name,
+        tel: body.tel,
+        role_id: body.role_id,
+        username: body.username
+    }, {
+        where: { uid: id }
+    })
+    return (result)
+}
+
+
+function hashPassword(password) {
+    return new Promise((resolve, reject) => {
+        bcrypt.genSalt(saltRounds, function (err, salt) {
+            bcrypt.hash(password, salt, function (err, hashPassword) {
+                resolve(hashPassword)
+            });
+        })
+
+
+    })
+}
+
+async function create(body) {
+    let hash = await hashPassword(body.password)
+    let count = await users.count({
+        where: { username: body.username }
+    })
+
+    if (count == 0) { //* is DupUser
+        let result = await users.create({
+            name: body.name,
+            tel: body.tel,
+            role_id: body.role_id,
+            username: body.username,
+            password: hash
+
+        })
+        return (result)
+    }
+    else {
+        let result = "Duplicate Username"
+        return (result)
+    }
+}
+
+async function destroy(id) {
+    let result = await users.destroy({
+        where:{uid:id}
+    })
+    return(result)
+}
+
+module.exports = {
+    find,
+    findById,
+    create,
+    findByUsername,
+    authenticated,
+    update,
+    destroy,
+}
