@@ -3,18 +3,24 @@ const { member_options} = db
 db.sequelize.sync();
 
 async function findByType(type) {
-    let result = await member_options.findAll({
-        attributes: ['mbid','name','phone_number','plate_number','vehicle_type'],
-        where:{
-            typeAccount:type
-        }
-    });
-    return (result)
+    try{
+        let result = await member_options.findAll({
+            attributes: ['mbid','name','phone_number','plate_number','vtid'],
+            where:{
+                typeAccount:type
+            }
+        });
+        return (result)
+    }
+    catch(err){
+        console.log(err)
+    }
+    
 }
 
 async function findByID(id) {
     let result = await member_options.findOne({
-        attributes: ['mbid','name','phone_number','plate_number','vehicle_type'],
+        attributes: ['mbid','name','phone_number','plate_number','vtid'],
         where:{
             mbid:id
         }
@@ -25,9 +31,9 @@ async function findByID(id) {
 
 async function findByVehicle(vehicle_type) {
     let result = await member_options.findAll({
-        attributes: ['mbid','name','phone_number','plate_number','vehicle_type'],
+        attributes: ['mbid','name','phone_number','plate_number','vtid'],
         where:{
-            vehicle_type:vehicle_type
+            vtid:vtid
         }
     });
     return (result)

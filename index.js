@@ -19,6 +19,7 @@ const mappingArea = require("./src/routes/mappingArea.route")
 const branchesRouter = require("./src/routes/branches.route")
 const truckOrdersRouter = require("./src/routes/truckOrders.route")
 const memberOptionsRouter = require("./src/routes/memberOptions.route")
+const checkListsRouter = require("./src/routes/checkLists.route")
 
 const tokenRouter = require("./src/routes/jwt.route")
 
@@ -64,8 +65,9 @@ app.use("/job-type-options",jobTypeOptionsRouter.router);
 app.use("/branches", branchesRouter.router)
 app.use("/truck-orders", truckOrdersRouter.router)
 app.use("/member-options", memberOptionsRouter.router)
-app.use("/token", jwtRouter);
+app.use("/check-lists", checkListsRouter.router)
 
+app.use("/token", jwtRouter);
 app.use("/public",express.static("public"))
 app.use("/public",serveIndex("public"))
 

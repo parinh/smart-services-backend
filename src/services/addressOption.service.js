@@ -1,5 +1,5 @@
 const db = require('../configs/sql.config');
-const { provinces, districts, sub_districts } = db
+const { provinces, districts, sub_districts,warehouses} = db
 db.sequelize.sync();
 
 async function find(province) {
@@ -27,9 +27,16 @@ async function findAllProvinces(){
     return (result)
 }
 
+async function findAllWarehouses(){
+    let result = await warehouses.findAll();
+
+    return result
+}
+
 
 
 module.exports = {
     find,
-    findAllProvinces
+    findAllProvinces,
+    findAllWarehouses
 }

@@ -42,6 +42,27 @@ router.post("/create",async function (req, res, next){
     }
 })
 
+router.delete("/delete/:id",async function (req, res, next){
+    try{
+        let id = req.params.id;
+        res.json(await TruckOrdersService.destroy(id))
+    }
+    catch (err) {
+        res.json(err)
+    }
+})
+
+router.patch("/status/update/:toid", async function (req, res, next) {
+    try {
+        let toid = req.params.toid
+        res.json(await TruckOrdersService.updateStatus(req.body.status_target, toid))
+    }
+    catch (err) {
+        console.log(err)
+        res.json(err)
+    }
+})
+
 router.patch("/update/:toid",async function (req, res, next){
     try{
         let toid = req.params.toid
@@ -51,6 +72,19 @@ router.patch("/update/:toid",async function (req, res, next){
         res.json(err)
     }
 })
+
+router.patch("/remove/order",async function (req, res, next){
+    try{
+        let toid = req.body.toid
+        let oid = req.body.oid
+        res.json(await TruckOrdersService.removeOrder(toid,oid))
+    }
+    catch (err){
+        res.json(err)
+    }
+})
+
+
 
 
 

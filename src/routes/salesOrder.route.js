@@ -43,7 +43,6 @@ var fs = require('fs');
 // const upload = multer({ dest: './public/files/' })
 router.get("/get", async function (req, res, next) {
     try {
-        console.log(req.query.status)
         if (req.query.status) { //* get by order_status (gate_keeper , order_lists ,complete , ....)
             res.json(await salesOrderServices.findByStatus(req.query.status))
         }
@@ -167,6 +166,16 @@ router.post("/create/readFile", async function (req, res, next) {
     }
 })
 
+router.patch("/update/order/truck-order-id" , async function (req, res, next) {
+    try {
+        res.json(await salesOrderServices.addOrderToTruckOrder(req.body))
+    }
+    catch (err) {
+        console.log(err);
+        res.json(err)
+    }
+})
+
 router.patch("/update/order-form", async function (req, res, next) {
     try {
 
@@ -174,7 +183,7 @@ router.patch("/update/order-form", async function (req, res, next) {
         // let wso_file = req.files.wso_file;
         // let body = JSON.parse(req.body.data)
 
-
+        // console.log(req.files);
 
         res.json(await salesOrderServices.updateOneOrder(req.body,req.files))
     }

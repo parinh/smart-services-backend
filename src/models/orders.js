@@ -8,6 +8,7 @@ module.exports = (sequelize, Sequelize) => {
       alid: { type: Sequelize.INTEGER(11), foreignKey: true, field: 'alid' },
       wlid: { type: Sequelize.INTEGER(11), foreignKey: true, field: 'wlid' },
       cus_po_id: { type: Sequelize.STRING(255), allowNull: true, field: 'cus_po_id' },
+      sale_id: { type: Sequelize.STRING(255), allowNull: true, field: 'sale_id' },
       ship_date: { type: Sequelize.DATE, allowNull: true, field: 'ship_date' },
       // cus_name: { type: Sequelize.STRING(255), allowNull: true, field: 'cus_name' },
       // address: { type: Sequelize.TEXT, allowNull: true, field: 'address' }, //*ต้อง relate ตาม branch?
@@ -19,6 +20,7 @@ module.exports = (sequelize, Sequelize) => {
       l_no:{ type: Sequelize.STRING(5), allowNull: true, field: 'l_no' },
       job_type:{ type: Sequelize.STRING(255), allowNull: true, field: 'job_type' },
       dead_line_date:{ type: Sequelize.DATE,allowNull: true, field: 'dead_line_date' },
+      order_type_id:{ type: Sequelize.STRING(255),defaultValue:1, field: 'order_type_id'},
 
       aso_file:{type: Sequelize.TEXT,allowNull: true, field: 'aso_file'},
       wso_file:{type: Sequelize.TEXT,allowNull: true, field: 'wso_file'},
@@ -26,6 +28,7 @@ module.exports = (sequelize, Sequelize) => {
       other_files:{type: Sequelize.JSON,allowNull: true, field: 'other_files'},
 
       toid:{type: Sequelize.INTEGER(11), foreignKey: true, field: 'toid' },
+      remark:{type: Sequelize.TEXT,allowNull: true, field: 'remark'},
 
     },
     { 

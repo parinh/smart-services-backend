@@ -19,6 +19,8 @@ router.get("/get/area-number", async function (req, res, next) {
 
 router.get("/mapping", async function (req, res, next) {
     try {
+        
+        // console.log("asdfasdf",JSON.parse(req.query.address))
         res.json(await MappingArea.mappingAreaNumber(JSON.parse(req.query.address)))
     }
     catch (err) { 

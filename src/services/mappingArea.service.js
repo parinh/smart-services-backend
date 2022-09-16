@@ -20,10 +20,12 @@ async function getAllAreaNumber() {
 }
 
 async function mappingAreaNumber(address){
+
     let result = await mapping_area.findOne({
         where: {
             district:address.district,
             province:address.province
+
         }
     })
 

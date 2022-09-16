@@ -1,12 +1,20 @@
 const { Sequelize } = require('sequelize');
 const { Op } = require("sequelize");
+require('dotenv').config()
+
+const db_name = process.env.DB_NAME ||'smart_services_dump'
+const db_username = process.env.DB_USERNAME || 'root'
+const db_password = process.env.DB_PASSWORD || 'password'
+const db_host = process.env.DB_HOST || 'localhost'
+
 
 const sequelize = new Sequelize(
-  'smart_service',
-  'root',
-  "'t}Squ'i:00bZ@j8",
+  db_name,
+  db_username,
+  db_password,
   {
-  host: '34.126.118.107', 
+  host: db_host,
+  port: 3306,
   dialect: 'mysql',
   define: {
     timestamps: false,
@@ -38,6 +46,8 @@ const sequelize = new Sequelize(
   db.truck_orders = require("../models/truckOrders")(sequelize , Sequelize)
   db.member_options = require("../models/memberOptions")(sequelize , Sequelize)
   db.vehicle_types = require("../models/vehicleTypes")(sequelize , Sequelize)
+  db.warehouses = require("../models/warehouses")(sequelize , Sequelize)
+  db.orderTypes = require("../models/orderTypes")(sequelize ,Sequelize)
   
 
   db.WSO_lists.hasMany(db.WSO_goods, { foreignKey: 'wlid'});
@@ -68,8 +78,14 @@ const sequelize = new Sequelize(
   db.truck_orders.hasMany(db.orders,{foreignKey:'toid'})
   db.orders.belongsTo(db.truck_orders,{foreignKey:'toid', targetKey:'toid'})
 
+  db.warehouses.hasMany(db.truck_orders,{foreignKey:'warehouse_id'})
+  db.truck_orders.belongsTo(db.warehouses,{foreignKey:'warehouse_id', targetKey:'warehouse_id'})
 
+  db.vehicle_types.hasMany(db.member_options,{foreignKey:'vtid'})
+  db.member_options.belongsTo(db.vehicle_types,{foreignKey:'vtid', targetKey:'vtid'})
 
+  db.orderTypes.hasMany(db.orders,{foreignKey:'order_type_id'})
+  db.orders.belongsTo(db.orderTypes,{foreignKey:'order_type_id',targetKey:"order_type_id"})
   // db.team.hasMany(
   //   db.player, 
   //   {

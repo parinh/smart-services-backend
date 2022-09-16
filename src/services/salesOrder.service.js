@@ -7,8 +7,9 @@ const fs = require('fs');
 const path = require('path');
 
 const db = require('../configs/sql.config');
+const { truck_orders } = require('../configs/sql.config');
 
-const { salesOrder, ASO_goods, ASO_lists, WSO_lists, WSO_goods, orders, branches } = db
+const { salesOrder, ASO_goods, ASO_lists, WSO_lists, WSO_goods, orders, branches, orderTypes } = db
 db.sequelize.sync();
 
 
@@ -66,6 +67,10 @@ async function findByStatus(status) {
             },
             {
                 model: branches,
+                required: false
+            },
+            {
+                model: orderTypes,
                 required: false
             }
         ],
@@ -130,20 +135,23 @@ async function create_by_form(body, files = "") {
             cus_group_name: form.cus_group_name,
             branch_id: form.branch_id,
             cus_po_id: form.cus_po_id,
+            sale_id: form.sale_id,
             ship_date: form.ship_date,
             created_by: form.created_by,
             confirm_date: form.confirm_date,
             dead_line_date: form.dead_line_date,
             job_type: form.job_type,
             l_no: form.l_no,
+            remark: form.remark,
             alid: aso_result.alid,
             wlid: wso_result.wlid,
+
             order_status: "gate_keeper",
         }
     )
 
     //* get order_id add to path
-    var dir_path = process.env.DIR_FILE_PATH + result.oid
+    var dir_path = `${__dirname}/../../public/files/${result.oid}` //process.env.DIR_FILE_PATH + result.oid
     var aso_dir_path = dir_path + process.env.ASO_FILE_PATH
     var wso_dir_path = dir_path + process.env.WSO_FILE_PATH
     var spec_sheet_dir_path = dir_path + process.env.SPEC_SHEET_FILE_PATH
@@ -323,8 +331,8 @@ async function create_by_files(body, aso_file, wso_file) {
 
 async function deleteOneOtherFile(oid, file_name) {
     try {
-        
-        var dir_path = process.env.DIR_FILE_PATH + oid + process.env.OTHER_FILE_PATH 
+
+        var dir_path = `${__dirname}/../../public/files/` + oid + process.env.OTHER_FILE_PATH
         //get one order from dir
         var other_files = await listAllFileOnDir(dir_path)
         // remove file on dir
@@ -490,83 +498,107 @@ async function create_with_file(body, aso_file = "", wso_file = "") {
 }
 
 
-async function updateOneOrder(body, files = "") {
-    let form = JSON.parse(body.form)
-    // console.log(form, files)
+async function updateOneOrder(body, files = null) {
+    try {
+        let form = JSON.parse(body.form)
+        // console.log(form, files)
 
-    //* update order by id
-    let update_result = await orders.update({
+        //* update order by id
+        let update_result = await orders.update({
 
-        cus_group_name: form.cus_group_name,
-        branch_id: form.branch_id,
-        cus_po_id: form.cus_po_id,
-        ship_date: form.ship_date,
-        created_by: form.created_by,
-        confirm_date: form.confirm_date,
-        dead_line_date: form.dead_line_date,
-    },
-        {
-            where: {
-                oid: form.oid
+            cus_group_name: form.cus_group_name,
+            branch_id: form.branch_id,
+            cus_po_id: form.cus_po_id,
+            sale_id: form.sale_id,
+            ship_date: form.ship_date,
+            created_by: form.created_by,
+            confirm_date: form.confirm_date,
+            dead_line_date: form.dead_line_date,
+            job_type: form.job_type,
+            l_no: form.l_no,
+            remark: form.remark,
+
+        },
+            {
+                where: {
+                    oid: form.oid
+                }
             }
-        }
 
-    )
+        )
 
-    if (files) {
-        var order = await findById(form.oid)
-        var dir_path = process.env.DIR_FILE_PATH + form.oid
 
-        if (files.aso_file) {
-            await removeAllFilesOnDir(dir_path + process.env.ASO_FILE_PATH)
-            await removeAsoBy_alid(order.alid)
-            var file_path = dir_path + process.env.ASO_FILE_PATH + utf8.decode(files.aso_file.name)
-            await store_file(files.aso_file, file_path)
-            await orders.update({
-                aso_file: utf8.decode(files.aso_file.name)
-            },{where:{oid : form.oid}})
-        }
-        if (files.wso_file) {
-            await removeAllFilesOnDir(dir_path + process.env.WSO_FILE_PATH)
-            //TODO removeWSOBy_wlid
-            var file_path = dir_path + process.env.WSO_FILE_PATH + utf8.decode(files.wso_file.name)
-            await store_file(files.wso_file, file_path)
-            await orders.update({
-                wso_file: utf8.decode(files.wso_file.name)
-            },{where:{oid : form.oid}})
-        }
-        if (files.spec_sheet_file) {
-            await removeAllFilesOnDir(dir_path + process.env.SPEC_SHEET_FILE_PATH)
-            //TODO removeshid
-            var file_path = dir_path + process.env.SPEC_SHEET_FILE_PATH + utf8.decode(files.spec_sheet_file.name)
-            await store_file(files.spec_sheet_file, file_path)
-            await orders.update({
-                spec_sheet_file: utf8.decode(files.spec_sheet_file.name)
-            },{where:{oid : form.oid}})
-        }
-        if (files.other_file) {
-            var other_file_path = dir_path + process.env.OTHER_FILE_PATH
-            //*list all file on other file folder
-            var file_name_lists = await listAllFileOnDir(other_file_path)
+        if (files) {
+            var order = await findById(form.oid)
+            var dir_path = `${__dirname}/../../public/files/${form.oid}` //process.env.DIR_FILE_PATH + result.oid
+            // var dir_path = process.env.DIR_FILE_PATH + form.oid
 
-            for (var i = 0; i < files.other_file.length; i++) {
-                var file_path = other_file_path + '/' + utf8.decode(files.other_file[i].name);
-                await store_file(files.other_file[i], file_path)
-                file_name_lists.push(utf8.decode(files.other_file[i].name))
+            if (files.aso_file) {
+                await removeAllFilesOnDir(dir_path + process.env.ASO_FILE_PATH)
+                await removeAsoBy_alid(order.alid)
+                var file_path = dir_path + process.env.ASO_FILE_PATH + utf8.decode(files.aso_file.name)
+                await store_file(files.aso_file, file_path)
+                await orders.update({
+                    aso_file: utf8.decode(files.aso_file.name)
+                }, { where: { oid: form.oid } })
             }
-            await orders.update({
-                other_files: file_name_lists
-            }, {
-                where: { oid: form.oid }
+            if (files.wso_file) {
+                await removeAllFilesOnDir(dir_path + process.env.WSO_FILE_PATH)
+                //TODO removeWSOBy_wlid
+                var file_path = dir_path + process.env.WSO_FILE_PATH + utf8.decode(files.wso_file.name)
+                await store_file(files.wso_file, file_path)
+                await orders.update({
+                    wso_file: utf8.decode(files.wso_file.name)
+                }, { where: { oid: form.oid } })
             }
-            )
+            if (files.spec_sheet_file) {
+                await removeAllFilesOnDir(dir_path + process.env.SPEC_SHEET_FILE_PATH)
+                //TODO removeshid
+                var file_path = dir_path + process.env.SPEC_SHEET_FILE_PATH + utf8.decode(files.spec_sheet_file.name)
+                await store_file(files.spec_sheet_file, file_path)
+                await orders.update({
+                    spec_sheet_file: utf8.decode(files.spec_sheet_file.name)
+                }, { where: { oid: form.oid } })
+            }
+            if (files.other_file) {
+                var other_file_path = dir_path + process.env.OTHER_FILE_PATH
+                //*list all file on other file folder
+                var file_name_lists = await listAllFileOnDir(other_file_path)
+
+
+                var temp_files = files.other_file
+
+                //*แยก files 1 อันให้เก็บใน array 
+                if (!files.other_file.length) {
+                    temp_files = [files.other_file]
+                }
+
+                for (var i = 0; i < temp_files.length; i++) {
+                    console.log("for");
+                    console.log("loop", temp_files[i]);
+                    var file_path = other_file_path + '/' + utf8.decode(temp_files[i].name);
+                    await store_file(temp_files[i], file_path)
+                    file_name_lists.push(utf8.decode(temp_files[i].name))
+                }
+                await orders.update({
+                    other_files: file_name_lists
+                }, {
+                    where: { oid: form.oid }
+                }
+                )
+            }
+
+            //TODO: update aso.wso.spec.other file name on order
+            return [1]
         }
 
-        //TODO: update aso.wso.spec.other file name on order
-        return 1
+        return update_result
+    }
+    catch (err) {
+        console.log(err)
+        return err
     }
 
-    return update_result
 
 
 }
@@ -579,6 +611,7 @@ async function listAllFileOnDir(path) {
                 files.forEach(file => {
                     array.push(file)
                 });
+                console.log(array)
                 resolve(array)
             });
         } catch (err) {
@@ -630,13 +663,42 @@ async function updateStatus(status_target, oid) {
 }
 
 async function getFilesById(target = "") {
-    var dir_path = process.env.DIR_FILE_PATH
+    var dir_path = `${__dirname}/../../public/files/${form.oid}`
     var path = dir_path + target
 
     fs.readdirSync(path).forEach(file => {
 
     });
 
+}
+
+async function addOrderToTruckOrder(body) {
+    var _orders = body.orders
+    var toid = body.toid
+    var drops = body.drops
+
+    var object = _orders.map((order) => {
+        return { oid: order }
+    })
+
+    await truck_orders.update({
+        drops:drops
+    },{
+        where:{
+            toid:toid
+        }
+    })
+
+    var result = await orders.update({
+        toid: toid,
+        order_status: "truck_order"
+    }, {
+        where: {
+            [db.op.or]: object
+        }
+    }
+    )
+    return result
 }
 
 
@@ -653,6 +715,7 @@ module.exports = {
     updateStatus,
     make_dir,
     getFilesById,
-    deleteOneOtherFile
+    deleteOneOtherFile,
+    addOrderToTruckOrder
 
 }
