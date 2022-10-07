@@ -12,7 +12,7 @@ module.exports = (sequelize, Sequelize) => {
       ship_date: { type: Sequelize.DATE, allowNull: true, field: 'ship_date' },
       // cus_name: { type: Sequelize.STRING(255), allowNull: true, field: 'cus_name' },
       // address: { type: Sequelize.TEXT, allowNull: true, field: 'address' }, //*ต้อง relate ตาม branch?
-      order_status: { type: Sequelize.STRING(255), allowNull: true,field: 'order_status' },
+      order_status: { type: Sequelize.INTEGER(11), default: 1  ,field: 'order_status' },
       created_by: { type: Sequelize.STRING(255), field: 'created_by' },
       created_at: { type: Sequelize.DATE, field: 'created_at' },
       updated_at: { type: Sequelize.DATE, field: 'updated_at' },

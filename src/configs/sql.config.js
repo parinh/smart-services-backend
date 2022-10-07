@@ -48,6 +48,8 @@ const sequelize = new Sequelize(
   db.vehicle_types = require("../models/vehicleTypes")(sequelize , Sequelize)
   db.warehouses = require("../models/warehouses")(sequelize , Sequelize)
   db.orderTypes = require("../models/orderTypes")(sequelize ,Sequelize)
+  db.goods_status = require("../models/goods_status")(sequelize ,Sequelize)
+  db.check_lists = require("../models/check_lists")(sequelize ,Sequelize)
   
 
   db.WSO_lists.hasMany(db.WSO_goods, { foreignKey: 'wlid'});
@@ -86,6 +88,12 @@ const sequelize = new Sequelize(
 
   db.orderTypes.hasMany(db.orders,{foreignKey:'order_type_id'})
   db.orders.belongsTo(db.orderTypes,{foreignKey:'order_type_id',targetKey:"order_type_id"})
+
+  db.WSO_goods.hasMany(db.check_lists,{foreignKey:'wgid'})
+  db.check_lists.belongsTo(db.WSO_goods,{foreignKey:'wgid',targetKey:'wgid'})
+
+  db.truck_orders.hasMany(db.check_lists,{foreignKey:'toid'})
+  db.check_lists.belongsTo(db.truck_orders,{foreignKey:'toid',targetKey:'toid'})
   // db.team.hasMany(
   //   db.player, 
   //   {

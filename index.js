@@ -82,3 +82,15 @@ http.listen(port, () => {
   
   console.log(`listening to port ${port}`);
 });
+
+//TODO: เพ่ิม address ที่ table braches gvk branch_name
+
+//TODO: get zone and mapping l_no , ซ่อน ASO file , WSO file ,disable spec
+//TODO: กำหนดส่ง , ยืนยันกำหนดส่ง everywhere when show orderstable
+//TODO: รหัสลค ชื่อลค ที่อยู่ลค on รายละเีอยดลกค้า header
+//TODO: ที่อยู่ -> จังหวัด value จังหวะด (ZONE)
+//TODO: เอกสารแนบ เอาออก; ประเภทงาน เพิ่ม
+//TODO: เช็คภาคก่อน ยืนยัน ; order status -> en
+//TODO: เช็ควันยืนยันส่งก่อนสร้างใบรถ order_lists
+// header 
+

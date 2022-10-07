@@ -13,21 +13,21 @@ const { salesOrder, ASO_goods, ASO_lists, WSO_lists, WSO_goods, orders, branches
 db.sequelize.sync();
 
 
-async function testReadFile(aso_file) {
+// async function testReadFile(aso_file) {
 
 
-    var status = await store_file(aso_file, './public/test/' + aso_file.name)
-    if (status) {
-        var row = xlsxFile('./public/test/' + aso_file.name).then((rows) => {
+//     var status = await store_file(aso_file, './public/test/' + aso_file.name)
+//     if (status) {
+//         var row = xlsxFile('./public/test/' + aso_file.name).then((rows) => {
 
-            console.table(rows);
+//             console.table(rows);
 
-        })
-        return row
+//         })
+//         return row
 
-    }
+//     }
 
-}
+// }
 
 async function find() {
     let result = await orders.findAll({
@@ -79,8 +79,25 @@ async function findByStatus(status) {
     return (result)
 }
 
+async function findByHasTruckOrder() {
+    try {
+        let result = await orders.findAll({
+            where: {
+                toid: { [db.op.ne]: null }
+            }
+        });
+        return {
+            status: "success", data: result
+        }
+    } catch (err) {
+        console.log(err);
+        return { status: 'error' }
+    }
+
+}
+
 async function findByConfirmed(value) {
-    let result = await salesOrder.findAll(
+    let result = await orders.findAll(
         {
             where: { is_confirm: value }
         }
@@ -108,108 +125,115 @@ async function findById(id) {
 // TODO create wso_detail update id
 
 async function create_by_form(body, files = "") {
-
-    let form = JSON.parse(body.form)
-    let aso_result = ''
-    let wso_result = ''
+    try {
 
 
-    //*create file set
-    if (body.aso_detail) {
-        let aso_detail = JSON.parse(body.aso_detail)
-        aso_result = await create_aso_set(aso_detail.aso_lists, aso_detail.aso_goods)
-    }
-    if (body.wso_detail) {
-        let wso_detail = JSON.parse(body.wso_detail)
-        wso_result = await create_wso_set(wso_detail.wso_lists, wso_detail.wso_goods)
-    }
-    if (body.spec_sheet_detail) {
-        let spec_sheet_detail = JSON.parse(body.spec_sheet_detail)
+        let form = JSON.parse(body.form)
+        let aso_result = ''
+        let wso_result = ''
 
-        //TODO อย่าลืมทำ read spec sheet detail
-        // spec_sheet_result = await create_wso_set(wso_detail.wso_lists, wso_detail.wso_goods)
-    }
-    //*create orders
-    let result = await orders.create(
-        {
-            cus_group_name: form.cus_group_name,
-            branch_id: form.branch_id,
-            cus_po_id: form.cus_po_id,
-            sale_id: form.sale_id,
-            ship_date: form.ship_date,
-            created_by: form.created_by,
-            confirm_date: form.confirm_date,
-            dead_line_date: form.dead_line_date,
-            job_type: form.job_type,
-            l_no: form.l_no,
-            remark: form.remark,
-            alid: aso_result.alid,
-            wlid: wso_result.wlid,
 
-            order_status: "gate_keeper",
+        //*create file set
+        if (body.aso_detail) {
+            let aso_detail = JSON.parse(body.aso_detail)
+            aso_result = await create_aso_set(aso_detail.aso_lists, aso_detail.aso_goods)
         }
-    )
-
-    //* get order_id add to path
-    var dir_path = `${__dirname}/../../public/files/${result.oid}` //process.env.DIR_FILE_PATH + result.oid
-    var aso_dir_path = dir_path + process.env.ASO_FILE_PATH
-    var wso_dir_path = dir_path + process.env.WSO_FILE_PATH
-    var spec_sheet_dir_path = dir_path + process.env.SPEC_SHEET_FILE_PATH
-    var other_dir_path = dir_path + process.env.OTHER_FILE_PATH
-
-
-    //* make dir set
-    await make_dir(dir_path)
-    await make_dir(aso_dir_path)
-    await make_dir(wso_dir_path)
-    await make_dir(spec_sheet_dir_path)
-    await make_dir(other_dir_path)
-
-    //*store files
-    if (result && files) {
-        let aso_name = ''
-        let wso_name = ''
-        let spec_sheet_name = ''
-        let other_name_array = []
-
-        if (files.aso_file) {
-            aso_name = utf8.decode(files.aso_file.name)
-            var file_path = aso_dir_path + aso_name;
-            await store_file(files.aso_file, file_path)
+        if (body.wso_detail) {
+            let wso_detail = JSON.parse(body.wso_detail)
+            wso_result = await create_wso_set(wso_detail.wso_lists, wso_detail.wso_goods)
         }
-        if (files.wso_file) {
-            wso_name = utf8.decode(files.wso_file.name)
-            var file_path = wso_dir_path + wso_name;
-            await store_file(files.wso_file, file_path)
-        }
-        if (files.spec_sheet_file) {
-            spec_sheet_name = utf8.decode(files.spec_sheet_file.name)
-            var file_path = spec_sheet_dir_path + spec_sheet_name;
-            await store_file(files.spec_sheet_file, file_path)
-        }
-        if (files.other_file) {
-            for (var i = 0; i < files.other_file.length; i++) {
-                other_name_array.push(utf8.decode(files.other_file[i].name))
-                var file_path = other_dir_path + utf8.decode(files.other_file[i].name);
-                await store_file(files.other_file[i], file_path)
-            }
-        }
+        if (body.spec_sheet_detail) {
+            let spec_sheet_detail = JSON.parse(body.spec_sheet_detail)
 
-        await orders.update({
-            aso_file: aso_name,
-            wso_file: wso_name,
-            spec_sheet_file: spec_sheet_name,
-            other_files: other_name_array
-
+            //TODO อย่าลืมทำ read spec sheet detail
+            // spec_sheet_result = await create_wso_set(wso_detail.wso_lists, wso_detail.wso_goods)
         }
-            , {
-                where: { oid: result.oid }
+        //*create orders
+        let result = await orders.create(
+            {
+                cus_group_name: form.cus_group_name,
+                branch_id: form.branch_id,
+                cus_po_id: form.cus_po_id,
+                sale_id: form.sale_id,
+                ship_date: form.ship_date,
+                created_by: form.created_by,
+                confirm_date: form.confirm_date,
+                dead_line_date: form.dead_line_date,
+                job_type: form.job_type,
+                l_no: form.l_no,
+                remark: form.remark,
+                alid: aso_result.alid,
+                wlid: wso_result.wlid,
+
+                order_status: 1,
             }
         )
 
-    }
+        //* get order_id add to path
+        var dir_path = `${__dirname}/../../public/files/${result.oid}` //process.env.DIR_FILE_PATH + result.oid
+        var aso_dir_path = dir_path + process.env.ASO_FILE_PATH
+        var wso_dir_path = dir_path + process.env.WSO_FILE_PATH
+        var spec_sheet_dir_path = dir_path + process.env.SPEC_SHEET_FILE_PATH
+        var other_dir_path = dir_path + process.env.OTHER_FILE_PATH
 
-    return result
+
+        //* make dir set
+        await make_dir(dir_path)
+        await make_dir(aso_dir_path)
+        await make_dir(wso_dir_path)
+        await make_dir(spec_sheet_dir_path)
+        await make_dir(other_dir_path)
+
+        //*store files
+        if (result && files) {
+            let aso_name = ''
+            let wso_name = ''
+            let spec_sheet_name = ''
+            let other_name_array = []
+
+            if (files.aso_file) {
+                aso_name = utf8.decode(files.aso_file.name)
+                var file_path = aso_dir_path + aso_name;
+                await store_file(files.aso_file, file_path)
+            }
+            if (files.wso_file) {
+                wso_name = utf8.decode(files.wso_file.name)
+                var file_path = wso_dir_path + wso_name;
+                await store_file(files.wso_file, file_path)
+            }
+            if (files.spec_sheet_file) {
+                spec_sheet_name = utf8.decode(files.spec_sheet_file.name)
+                var file_path = spec_sheet_dir_path + spec_sheet_name;
+                await store_file(files.spec_sheet_file, file_path)
+            }
+            if (files.other_file) {
+                for (var i = 0; i < files.other_file.length; i++) {
+                    other_name_array.push(utf8.decode(files.other_file[i].name))
+                    var file_path = other_dir_path + utf8.decode(files.other_file[i].name);
+                    await store_file(files.other_file[i], file_path)
+                }
+            }
+
+            await orders.update({
+                aso_file: aso_name,
+                wso_file: wso_name,
+                spec_sheet_file: spec_sheet_name,
+                other_files: other_name_array
+
+            }
+                , {
+                    where: { oid: result.oid }
+                }
+            )
+
+        }
+
+        return { status: 'success' }
+    }
+    catch (err) {
+        console.log(err);
+        return { status: "error", data: err.message }
+    }
 }
 
 async function create_aso_set(aso_lists, aso_goods) {
@@ -291,12 +315,15 @@ async function create_wso_set(wso_lists, wso_goods) {
                         wso_good_amount: Number(wso_good.wso_good_amount),
                         wso_good_quantity: Number(wso_good.wso_good_quantity),
                         wso_good_price: Number(wso_good.wso_good_price),
+                        missing_quantity: Number(wso_good.wso_good_quantity),
+
                     })
                 }
                 resolve(wso_result)
             }
         }
         catch (err) {
+            console.log(err);
             reject(err)
         }
 
@@ -477,7 +504,7 @@ async function create_with_file(body, aso_file = "", wso_file = "") {
                     address: aso.address,
                     ship_date: aso.ship_date,
                     created_by: body.created_by,
-                    order_status: 'gate_keeper'
+                    order_status: 1
                 })
             }
 
@@ -662,6 +689,23 @@ async function updateStatus(status_target, oid) {
     return update_result
 }
 
+async function updateType(type_target, oid) {
+    console.log(type_target, oid);
+    // let update_result = await orders.update({
+
+    //     order_status: status_target
+
+    // },
+    //     {
+    //         where: {
+    //             oid: oid
+    //         }
+    //     }
+    // )
+
+    // return update_result
+}
+
 async function getFilesById(target = "") {
     var dir_path = `${__dirname}/../../public/files/${form.oid}`
     var path = dir_path + target
@@ -682,16 +726,16 @@ async function addOrderToTruckOrder(body) {
     })
 
     await truck_orders.update({
-        drops:drops
-    },{
-        where:{
-            toid:toid
+        drops: drops
+    }, {
+        where: {
+            toid: toid
         }
     })
 
     var result = await orders.update({
         toid: toid,
-        order_status: "truck_order"
+        order_status: 3
     }, {
         where: {
             [db.op.or]: object
@@ -700,6 +744,51 @@ async function addOrderToTruckOrder(body) {
     )
     return result
 }
+
+
+async function searchOrders(value) {
+    try {
+        const query_str = {}
+        const join_query_str = {}
+        var required = true
+        const { cus_po_id , cus_name , order_status , has_truck} = value
+
+        query_str.order_status = order_status
+
+        if(has_truck) {
+            console.log();
+            query_str.toid = { [db.op.ne]: null };
+        }
+        if(cus_po_id) {
+            query_str.cus_po_id =  { [db.op.substring]: cus_po_id };
+            required = false
+        }
+        if(cus_name){
+            join_query_str.branch_name = {[db.op.substring] : cus_name}
+        }
+
+
+        let result = await orders.findAll({
+            where: query_str,
+            include: [
+                {
+
+                    model: branches,
+                    where: join_query_str,
+                    required: required
+                }
+            ]
+        })
+        console.log();
+        return { status: 'success', data: result }
+    }
+    catch (err) {
+        console.log(err);
+    }
+
+}
+
+
 
 
 
@@ -711,11 +800,13 @@ module.exports = {
     create_by_files,
     create_by_form,
     updateOneOrder,
-    testReadFile,
     updateStatus,
     make_dir,
     getFilesById,
     deleteOneOtherFile,
-    addOrderToTruckOrder
+    addOrderToTruckOrder,
+    updateType,
+    findByHasTruckOrder,
+    searchOrders
 
 }

@@ -28,6 +28,7 @@ async function createBranch(body) {
         return result
     }
     catch (err) {
+        console.log(err);
         return err
     }
 

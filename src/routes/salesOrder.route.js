@@ -1,7 +1,7 @@
 const salesOrderServices = require('../services/salesOrder.service')
 const express = require('express');
 const router = express.Router();
-const Multer = require('multer');
+
 var fs = require('fs');
 
 // const { Storage } = require('@google-cloud/storage');
@@ -59,6 +59,25 @@ router.get("/get/is_confirm/:value", async function (req, res, next) {
     try {
         let value = req.params.value;
         res.json(await salesOrderServices.findByConfirmed(value));
+    }
+    catch (err) {
+        res.json(err)
+    }
+})
+
+router.get("/get/is/truck-order", async function (req, res, next) {
+    try {
+        res.json(await salesOrderServices.findByHasTruckOrder());
+    }
+    catch (err) {
+        res.json(err)
+    }
+})
+
+
+router.get("/get/orders/search", async function (req, res, next) {
+    try {
+        res.json(await salesOrderServices.searchOrders(req.query));
     }
     catch (err) {
         res.json(err)
@@ -196,6 +215,15 @@ router.patch("/update/order/status", async function (req, res, next) {
     try {
 
         res.json(await salesOrderServices.updateStatus(req.body.status_target, req.body.oid))
+    }
+    catch (err) {
+        res.json(err)
+    }
+})
+
+router.patch("/update/order/type", async function (req, res, next) {
+    try {
+        res.json(await salesOrderServices.updateType(req.body.type_target, req.body.oid))
     }
     catch (err) {
         res.json(err)

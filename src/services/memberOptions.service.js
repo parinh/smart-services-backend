@@ -33,7 +33,7 @@ async function findByVehicle(vehicle_type) {
     let result = await member_options.findAll({
         attributes: ['mbid','name','phone_number','plate_number','vtid'],
         where:{
-            vtid:vtid
+            vtid:vehicle_type
         }
     });
     return (result)

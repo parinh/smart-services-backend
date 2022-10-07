@@ -28,6 +28,16 @@ router.get("/mapping", async function (req, res, next) {
     }
 });
 
+router.get("/mapping/by/zone/:zone", async function (req, res, next) {
+    try {
+        // console.log("asdfasdf",JSON.parse(req.query.address))
+        res.json(await MappingArea.mappingByZone(req.params.zone)) 
+    }
+    catch (err) { 
+        res.json(err)
+    }
+});
+
 
 
 module.exports = {

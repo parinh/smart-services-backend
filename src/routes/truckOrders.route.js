@@ -55,7 +55,8 @@ router.delete("/delete/:id",async function (req, res, next){
 router.patch("/status/update/:toid", async function (req, res, next) {
     try {
         let toid = req.params.toid
-        res.json(await TruckOrdersService.updateStatus(req.body.status_target, toid))
+        let status_target = req.body.status_target
+        res.json(await TruckOrdersService.updateStatus(status_target, toid ))
     }
     catch (err) {
         console.log(err)
@@ -63,10 +64,16 @@ router.patch("/status/update/:toid", async function (req, res, next) {
     }
 })
 
-router.patch("/update/:toid",async function (req, res, next){
+router.patch("/upsert",async function (req, res, next){
     try{
-        let toid = req.params.toid
-        res.json(await TruckOrdersService.update(toid,req.body))
+        let toid = req.body.toid
+        let form = req.body.form
+        if(toid){
+            res.json(await TruckOrdersService.update(toid,form))
+        }
+        else{
+            res.json(await TruckOrdersService.createByForm(form))
+        }
     }
     catch (err) {
         res.json(err)
