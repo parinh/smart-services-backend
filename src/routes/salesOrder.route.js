@@ -41,14 +41,50 @@ var fs = require('fs');
 
 // const upload = multer({ storage: storage })
 // const upload = multer({ dest: './public/files/' })
+router.use(function (req, res, next) {
+    
+    salesOrderServices.setLNo(req.headers.l_no)
+    next()
+})
+
+
+router.get("/search", async function (req, res, next) {
+    try {
+        res.json(await salesOrderServices.search(req.query))
+    }
+    catch (err) {
+        res.json(err.message)
+    }
+});
 router.get("/get", async function (req, res, next) {
     try {
+        
         if (req.query.status) { //* get by order_status (gate_keeper , order_lists ,complete , ....)
-            res.json(await salesOrderServices.findByStatus(req.query.status))
+            res.json(await salesOrderServices.findByStatus(req.query.status, req.query.option))
         }
         else { //* if status is NULL get all orders
             res.json(await salesOrderServices.find())
         }
+    }
+    catch (err) {
+        res.json(err)
+    }
+});
+
+router.get("/get/problem", async function (req, res, next) {
+    try {
+        res.json(await salesOrderServices.findByProblem())
+
+    }
+    catch (err) {
+        res.json(err)
+    }
+});
+
+router.get("/get/oids", async function (req, res, next) {
+    try {
+        var oids = req.query.oids.split(',')
+        res.json(await salesOrderServices.findOrderByIdArray(oids))
     }
     catch (err) {
         res.json(err)
@@ -65,9 +101,19 @@ router.get("/get/is_confirm/:value", async function (req, res, next) {
     }
 })
 
+router.get("/get/wso", async function (req, res, next) {
+    try {
+        var status = req.query.status.split(',')
+        res.json(await salesOrderServices.getWSOForChecklists(status));
+    }
+    catch (err) {
+        res.json(err)
+    }
+})
+
 router.get("/get/is/truck-order", async function (req, res, next) {
     try {
-        res.json(await salesOrderServices.findByHasTruckOrder());
+        res.json(await salesOrderServices.findByHasTruckOrder(req.query));
     }
     catch (err) {
         res.json(err)
@@ -87,7 +133,7 @@ router.get("/get/orders/search", async function (req, res, next) {
 // var uploadFnct = function (dir_name, type) {
 //     var storage = multer.diskStorage({ //multers disk storage settings
 //         destination: async function (req, file, cb) {
-//             console.log(req.body)
+//             
 //             var result = await salesOrderServices.create_by_form(req.body)
 
 //             var dest = './public/files/' + result.dataValues.oid.toString() + '/' + type;
@@ -115,10 +161,10 @@ router.get("/get/orders/search", async function (req, res, next) {
 // };
 
 router.post("/create/order-form", async function (req, res, next) {
-    console.log(req.files)
+    
     try {
-        res.json(await salesOrderServices.create_by_form(req.body,req.files))
-        // console.log(bucket)
+        res.json(await salesOrderServices.create_by_form(req.body, req.files))
+        // 
         // // Create a new blob in the bucket and upload the file data.
         // const blob = bucket.file(req.files['aso_file'][0]);
         // const blobStream = blob.createWriteStream();
@@ -136,8 +182,8 @@ router.post("/create/order-form", async function (req, res, next) {
         // });
 
         // blobStream.end(req.files['aso_file'][0].buffer);
-        // console.log(result.dataValues.oid.toString());
-        // console.log(req.files)
+        // 
+        // 
 
         // var currUpload = uploadFnct(1, 'aso_file');
         // currUpload(req, res, function (err) {
@@ -185,12 +231,12 @@ router.post("/create/readFile", async function (req, res, next) {
     }
 })
 
-router.patch("/update/order/truck-order-id" , async function (req, res, next) {
+router.patch("/update/order/truck-order-id", async function (req, res, next) {
     try {
         res.json(await salesOrderServices.addOrderToTruckOrder(req.body))
     }
     catch (err) {
-        console.log(err);
+        
         res.json(err)
     }
 })
@@ -202,12 +248,21 @@ router.patch("/update/order-form", async function (req, res, next) {
         // let wso_file = req.files.wso_file;
         // let body = JSON.parse(req.body.data)
 
-        // console.log(req.files);
+        // 
 
-        res.json(await salesOrderServices.updateOneOrder(req.body,req.files))
+        res.json(await salesOrderServices.updateOneOrder(req.body, req.files))
     }
     catch (err) {
         res.json(err)
+    }
+})
+
+router.patch("/update/orders/show-cost", async function (req, res, next) {
+    try {
+        console.log("rrrr");
+        res.json(await salesOrderServices.updateShowCost(req.body))
+    } catch (error) {
+        res.json(error)
     }
 })
 
@@ -230,15 +285,32 @@ router.patch("/update/order/type", async function (req, res, next) {
     }
 })
 
-router.patch("/delete/file/other",async function (req, res, next) {
-    try{
-        res.json(await salesOrderServices.deleteOneOtherFile(req.body.oid,req.body.file_name))
+router.patch("/update/order/finish", async function (req, res, next) {
+    try {
+        res.json(await salesOrderServices.updateToFinished(req.body.status_target, req.body.type_target, req.body.oid, req.body.problems_target, req.body.problem_remark, req.body.toid))
     }
     catch (err) {
         res.json(err)
     }
 })
 
+router.patch("/delete/file/other", async function (req, res, next) {
+    try {
+        res.json(await salesOrderServices.deleteOneOtherFile(req.body.oid, req.body.file_name))
+    }
+    catch (err) {
+        res.json(err)
+    }
+})
+
+router.get("/get/problem-status", async function (req, res, next) {
+    try {
+        res.json(await salesOrderServices.getProblemStatus());
+    }
+    catch (err) {
+        res.json(err)
+    }
+})
 
 router.get("/get/:id", async function (req, res, next) {
     try {
@@ -249,6 +321,30 @@ router.get("/get/:id", async function (req, res, next) {
         res.json(err)
     }
 })
+
+
+router.patch("/reset/orders", async function (req, res, next) {
+    try {
+        let toid = req.body.toid;
+
+        res.json(await salesOrderServices.resetOrdersToSuccess(toid));
+    }
+    catch (err) {
+        res.json(err)
+    }
+})
+
+router.get("/test", async function (req, res, next) {
+    try {
+        res.json(await salesOrderServices.test());
+    }
+    catch (err) {
+        res.json(err)
+    }
+})
+
+
+
 
 module.exports = {
     router,

@@ -2,7 +2,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('../services/jwt.service');
 
 const db = require('../configs/sql.config');
-const { users } = db
+const { users, user_roles } = db
 db.sequelize.sync();
 
 const saltRounds = 12;
@@ -11,7 +11,7 @@ async function find() {
     var result = await users.findAll();
     return (result)
 }
-       
+
 async function findById(id) {
     var result = await users.findOne({
         where: { uid: id },
@@ -21,8 +21,23 @@ async function findById(id) {
 }
 
 
+async function getUserRoles() {
+    try {
+        var result = await user_roles.findAll()
+        return ({
+            status: 'success', data: result
+        })
+    } catch (error) {
+        console.log(error);
+        return ({
+            status: 'error',
+        })
+    }
+
+}
+
 async function findByUsername(username) {
-    return await Users.findOne({ username: username });
+    return await users.findOne({ username: username });
 }
 
 async function authenticated(AuthRequired) {
@@ -38,7 +53,8 @@ async function authenticated(AuthRequired) {
                 name: founded.name,
                 tel: founded.tel,
                 role_id: founded.role_id,
-                username: founded.username
+                username: founded.username,
+                l_no: founded.l_no
             }
             var token = jwt.signToken(user);
             return {
@@ -73,6 +89,29 @@ async function update(body, id) {
         where: { uid: id }
     })
     return (result)
+}
+
+async function genPassWord(body) {
+    try {
+
+        let hash = await hashPassword('x')
+
+
+        var result = await users.update({
+            password: hash,
+
+        }
+            , {
+                where: { uid: 6 }
+            }
+        )
+
+        return 'success'
+    }
+    catch (err) {
+
+        return 'error'
+    }
 }
 
 
@@ -113,9 +152,9 @@ async function create(body) {
 
 async function destroy(id) {
     let result = await users.destroy({
-        where:{uid:id}
+        where: { uid: id }
     })
-    return(result)
+    return (result)
 }
 
 module.exports = {
@@ -126,4 +165,6 @@ module.exports = {
     authenticated,
     update,
     destroy,
+    genPassWord,
+    getUserRoles
 }

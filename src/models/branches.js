@@ -7,7 +7,7 @@ module.exports = (sequelize, Sequelize) => {
       cus_group_name:{type: Sequelize.STRING(255),allowNull: true,default:'general',field: 'cus_group_name' },
       province:{type: Sequelize.STRING(255), allowNull: true, field: 'province' },
       branch_name:{type: Sequelize.STRING(255), allowNull: true, field: 'branch_name' },
-      zip_code:{type: Sequelize.INTEGER(5),allowNull: true,field: 'zip_code' },
+      zip_code:{type: Sequelize.STRING(10),allowNull: true,field: 'zip_code' },
       sub_district_name:{type: Sequelize.STRING(255), allowNull: true, field: 'sub_district_name' },
       district_name:{type: Sequelize.STRING(255), allowNull: true, field: 'district_name' },
       address:{type: Sequelize.TEXT, allowNull: true, field: 'address'},
@@ -18,8 +18,8 @@ module.exports = (sequelize, Sequelize) => {
       zone:{type: Sequelize.STRING(5), allowNull: true, field: 'zone'},
       l_no:{type: Sequelize.INTEGER(5),allowNull: true,field: 'l_no' },
 
-      billing_province:{type: Sequelize.STRING(255), allowNull: true, field: 'province' },
-      billing_zip_code:{type: Sequelize.INTEGER(5),allowNull: true,field: 'zip_code' },
+      billing_province:{type: Sequelize.STRING(255), allowNull: true, field: 'billing_province' },
+      billing_zip_code:{type: Sequelize.INTEGER(5),allowNull: true,field: 'billing_zip_code' },
       billing_sub_district_name:{type: Sequelize.STRING(255), allowNull: true, field: 'billing_sub_district_name' },
       billing_district_name:{type: Sequelize.STRING(255), allowNull: true, field: 'billing_district_name' },
 

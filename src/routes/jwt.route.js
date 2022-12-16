@@ -22,7 +22,7 @@ jwtRouter.get('/verify', async function (req, res, next) {
             tel: decoded.data.tel,
             role_id: decoded.data.role_id,
             username: decoded.data.username,
-
+            l_no: decoded.data.l_no
         }
         res.json(user);
     } catch (err) {

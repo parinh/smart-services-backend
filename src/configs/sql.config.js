@@ -1,11 +1,13 @@
 const { Sequelize } = require('sequelize');
-const { Op } = require("sequelize");
+const { Op ,models} = require("sequelize");
 require('dotenv').config()
 
 const db_name = process.env.DB_NAME ||'smart_services_dump'
 const db_username = process.env.DB_USERNAME || 'root'
 const db_password = process.env.DB_PASSWORD || 'password'
 const db_host = process.env.DB_HOST || 'localhost'
+
+console.log(db_host );
 
 
 const sequelize = new Sequelize(
@@ -26,6 +28,7 @@ const sequelize = new Sequelize(
 
   const db = {};
   db.op = Op
+  db.models = models
 
   db.Sequelize = Sequelize;
   db.sequelize = sequelize;
@@ -48,9 +51,14 @@ const sequelize = new Sequelize(
   db.vehicle_types = require("../models/vehicleTypes")(sequelize , Sequelize)
   db.warehouses = require("../models/warehouses")(sequelize , Sequelize)
   db.orderTypes = require("../models/orderTypes")(sequelize ,Sequelize)
-  db.goods_status = require("../models/goods_status")(sequelize ,Sequelize)
+  db.problem_status = require("../models/problem_status")(sequelize ,Sequelize)
   db.check_lists = require("../models/check_lists")(sequelize ,Sequelize)
-  
+  db.cost_mapping = require("../models/cost_mapping")(sequelize ,Sequelize)
+  db.cost_k_type = require("../models/cost_k_type")(sequelize ,Sequelize)
+  db.cost_area_type = require("../models/cost_area_type")(sequelize ,Sequelize)
+  db.orders_cost = require("../models/orders_cost")(sequelize ,Sequelize)
+  db.fuel_percent = require("../models/fuelPercent")(sequelize ,Sequelize)
+  db.user_roles = require("../models/userRoles")(sequelize ,Sequelize)
 
   db.WSO_lists.hasMany(db.WSO_goods, { foreignKey: 'wlid'});
   db.WSO_goods.belongsTo(db.WSO_lists, { foreignKey: 'wlid'});
@@ -61,7 +69,7 @@ const sequelize = new Sequelize(
   db.ASO_lists.hasOne(db.orders,{foreignKey:'alid'});  //* PK hasone FK
   db.orders.belongsTo(db.ASO_lists,{foreignKey:'alid', targetKey: 'alid'}); //* FK -> PK
 
-  db.WSO_lists.hasOne(db.orders,{foreignKey:'wlid'})
+  db.WSO_lists.hasOne(db.orders,{foreignKey:'wlid'}) //* 1:1
   db.orders.belongsTo(db.WSO_lists,{foreignKey:'wlid', targetKey:'wlid'});
 
   db.customer_groups.hasMany(db.branches,{foreignKey:'cus_group_name'})
@@ -74,7 +82,7 @@ const sequelize = new Sequelize(
   db.branches.hasOne(db.orders,{foreignKey:'branch_id'});
   db.orders.belongsTo(db.branches,{foreignKey:'branch_id',targetKey: 'branch_id'})
 
-  db.member_options.hasOne(db.truck_orders,{foreignKey:'mbid'})
+  db.member_options.hasMany(db.truck_orders,{foreignKey:'mbid'})
   db.truck_orders.belongsTo(db.member_options,{foreignKey:'mbid',targetKey:'mbid'})
 
   db.truck_orders.hasMany(db.orders,{foreignKey:'toid'})
@@ -94,6 +102,26 @@ const sequelize = new Sequelize(
 
   db.truck_orders.hasMany(db.check_lists,{foreignKey:'toid'})
   db.check_lists.belongsTo(db.truck_orders,{foreignKey:'toid',targetKey:'toid'})
+  
+  db.warehouses.hasMany(db.cost_mapping,{foreignKey:'warehouse_id'})
+  db.cost_mapping.belongsTo(db.warehouses,{foreignKey:'warehouse_id',targetKey:'warehouse_id'})
+
+
+  db.cost_k_type.hasMany(db.cost_mapping,{foreignKey:'kcid'})
+  db.cost_mapping.belongsTo(db.cost_k_type,{foreignKey:'kcid',targetKey:'kcid'})
+
+  db.cost_area_type.hasMany(db.cost_mapping,{foreignKey:'acid'})
+  db.cost_mapping.belongsTo(db.cost_area_type,{foreignKey:'acid',targetKey:'acid'})
+  
+  db.truck_orders.hasMany(db.orders_cost,{foreignKey:'toid'})
+  db.orders_cost.belongsTo(db.truck_orders,{foreignKey:'toid',targetKey:'toid'})
+
+  db.branches.hasMany(db.orders_cost,{foreignKey:'branch_id'})
+  db.orders_cost.belongsTo(db.branches,{foreignKey:'branch_id',targetKey:'branch_id'})
+
+  db.orders.hasMany(db.orders_cost,{foreignKey:'oid'})
+  db.orders_cost.belongsTo(db.orders,{foreignKey:'oid',targetKey:'oid'})
+
   // db.team.hasMany(
   //   db.player, 
   //   {
@@ -113,3 +141,5 @@ const sequelize = new Sequelize(
 //  where not lower(cf_cust_name) LIKE '%tus%'  or lower(cf_cust_name) LIKE '%ตัส%' and cf_cust_name != '' */
 
 // group by cf_branch_name
+
+//TODO: ทำ field เก็บปัญหาเวลาออกเดอร์ยืนยันใน truck เก็บที่ order cost

@@ -14,8 +14,12 @@ router.get("/get", async function (req, res, next) {
 
 router.post("/branch/create",async function (req, res, next) {
     try{
-        console.log(req.body);
-        res.json(await customerService.createBranch(req.body))
+        if(req.body.bid){
+            res.json(await customerService.updateBranch(req.body))
+        }
+        else{
+            res.json(await customerService.createBranch(req.body))
+        }
     }
     catch(err){
         console.log(err);

@@ -27,6 +27,41 @@ router.get("/get", async function (req, res, next) {
     }
 });
 
+router.get("/get/by/time", async function (req, res, next) {
+    try {
+        var toid = req.query.toid;
+        var times = req.query.times;
+        var wlid = req.query.wlid;
+        console.log(wlid);
+        res.json(await checkLists.findByTimes(toid,times,wlid))
+    }
+    catch (err) { 
+        console.log(err);
+        res.json(err)
+    }
+});
+router.get("/get/by/toid", async function (req, res, next) {
+    try {
+        var toid = req.query.toid;
+        res.json(await checkLists.findWaitingPutOut(toid))
+    }
+    catch (err) { 
+        console.log(err);
+        res.json(err)
+    }
+});
+router.get("/get/by/oid", async function (req, res, next) {
+    try {
+        var wlid = req.query.wlid;
+
+        res.json(await checkLists.findCheckListForPickOutForm(wlid))
+    }
+    catch (err) { 
+        console.log(err);
+        res.json(err)
+    }
+});
+
 router.get("/goods-status/get", async function (req, res, next) {
     try {
         console.log('goods');
@@ -34,6 +69,15 @@ router.get("/goods-status/get", async function (req, res, next) {
     }
     catch (err) { 
         console.log(err);
+        res.json(err)
+    }
+});
+
+router.patch("/update", async function (req, res, next) {
+    try {
+        res.json(await checkLists.updateCheckLists(req.body))
+    }
+    catch (err) { 
         res.json(err)
     }
 });
@@ -52,7 +96,48 @@ router.patch("/update/shortage", async function (req, res, next) {
 
 router.patch("/upsert", async function (req, res, next) {
     try {
-        res.json(await checkLists.upsertChecklists(req.body))
+        res.json(await checkLists.createChecklists(req.body))
+    }
+    catch (err) { 
+        res.json(err)
+    }
+});
+
+
+
+router.patch("/missing-quantity/update", async function (req, res, next) {
+    try {
+        res.json(await checkLists.updateMissingQuantity(req.body))
+    }
+    catch (err) { 
+        res.json(err)
+    }
+});
+
+router.patch("/missing-quantity/update", async function (req, res, next) {
+    try {
+        res.json(await checkLists.updateMissingQuantity(req.body))
+    }
+    catch (err) { 
+        res.json(err)
+    }
+});
+
+
+router.patch("/status/update", async function (req, res, next) {
+    try {
+        res.json(await checkLists.updateWSOListStatus(req.body))
+    }
+    catch (err) { 
+        res.json(err)
+    }
+});
+
+router.delete("/delete", async function (req, res, next) {
+    try {
+        var toid = req.query.toid;
+        var times = req.query.times;
+        res.json(await checkLists.destroyCheckList(toid,times))
     }
     catch (err) { 
         res.json(err)

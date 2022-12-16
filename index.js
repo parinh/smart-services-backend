@@ -20,6 +20,8 @@ const branchesRouter = require("./src/routes/branches.route")
 const truckOrdersRouter = require("./src/routes/truckOrders.route")
 const memberOptionsRouter = require("./src/routes/memberOptions.route")
 const checkListsRouter = require("./src/routes/checkLists.route")
+const ordersCostRouter = require("./src/routes/ordersCost.route")
+const fuelPercent = require("./src/routes/fuelPercent.route")
 
 const tokenRouter = require("./src/routes/jwt.route")
 
@@ -46,14 +48,18 @@ app.use(expressjwt({ secret: jwt_secret, algorithms: ['HS256'] })
                 '/token/decode',
                 '/users/auth',
                 '/sales-order/get',
+                '/sales-order/test',
+                '/sales-order/search',   
                 '/address/options/get',
                 '/address/options/province/detail/get/:province',
                 '/branches/test',
-                /\/public/i
+                /\/public/i,
+                                                    
+               
             ]
         }
     ));
-
+ // '/users/gen/password',
 
 //paths
 app.use("/users", usersRouter.router);
@@ -66,6 +72,8 @@ app.use("/branches", branchesRouter.router)
 app.use("/truck-orders", truckOrdersRouter.router)
 app.use("/member-options", memberOptionsRouter.router)
 app.use("/check-lists", checkListsRouter.router)
+app.use("/orders-cost", ordersCostRouter.router)
+app.use("/fuel-percent", fuelPercent.router)
 
 app.use("/token", jwtRouter);
 app.use("/public",express.static("public"))
@@ -82,15 +90,4 @@ http.listen(port, () => {
   
   console.log(`listening to port ${port}`);
 });
-
-//TODO: เพ่ิม address ที่ table braches gvk branch_name
-
-//TODO: get zone and mapping l_no , ซ่อน ASO file , WSO file ,disable spec
-//TODO: กำหนดส่ง , ยืนยันกำหนดส่ง everywhere when show orderstable
-//TODO: รหัสลค ชื่อลค ที่อยู่ลค on รายละเีอยดลกค้า header
-//TODO: ที่อยู่ -> จังหวัด value จังหวะด (ZONE)
-//TODO: เอกสารแนบ เอาออก; ประเภทงาน เพิ่ม
-//TODO: เช็คภาคก่อน ยืนยัน ; order status -> en
-//TODO: เช็ควันยืนยันส่งก่อนสร้างใบรถ order_lists
-// header 
 

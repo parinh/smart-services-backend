@@ -2,6 +2,7 @@
 require('dotenv').config()
 const utf8 = require('utf8');
 const xlsxFile = require('read-excel-file/node');
+const moment = require('moment');
 
 const fs = require('fs');
 const path = require('path');
@@ -9,8 +10,9 @@ const path = require('path');
 const db = require('../configs/sql.config');
 const { truck_orders } = require('../configs/sql.config');
 
-const { salesOrder, ASO_goods, ASO_lists, WSO_lists, WSO_goods, orders, branches, orderTypes } = db
+const { salesOrder, ASO_goods, ASO_lists, WSO_lists, WSO_goods, orders, branches, orderTypes, problem_status, orders_cost } = db
 db.sequelize.sync();
+let l_no = "0"
 
 
 // async function testReadFile(aso_file) {
@@ -28,6 +30,50 @@ db.sequelize.sync();
 //     }
 
 // }
+function setLNo(_l_no) {
+    l_no = _l_no ?? '0'
+
+}
+
+async function test() {
+    try {
+
+        const str = "T"
+        let month = moment().format('MM').toString().padStart(2, '0')
+        let year = moment().format('YY').toString().padStart(2, '0')
+
+        var count = await orders.count({
+            where: {
+                created_at: {
+                    [db.op.between]: [
+                        moment().startOf('month'),
+                        moment().endOf('month')
+                    ]
+                }
+            }
+        })
+        count = count.toString().padStart(3, '0')
+        var order_code = str + year + month + count
+        return count
+
+    }
+    catch (err) {
+
+    }
+
+}
+
+async function search(query) {
+    try {
+        
+        let result = await orders.findAll({
+            where: {}
+        })
+        return { status: 'success'}
+    } catch (error) {
+        return { status:'error',massage:error.message }
+    }
+}
 
 async function find() {
     let result = await orders.findAll({
@@ -51,10 +97,61 @@ async function find() {
     });
     return (result)
 }
+//TODO branch search by name cust code
 
-async function findByStatus(status) {
+async function updateShowCost(_orders){
+    try {
+        
+        for(let order of _orders) {
+            
+            await orders.update({
+                is_show_cost:order.is_show_cost
+            }
+            ,{
+                where:{oid:order.oid}
+            })
+        } 
+        return { status: 'success' }
+    } catch (error) {
+        
+        return { status: 'error' ,massage:error.massage}
+    }
+}
+
+async function findByProblem(){
+    try {
+        var result = await orders.findAll({
+            where:{
+                order_type_id:2
+            }
+            ,include:[
+                {
+                    model:branches
+                }
+            ]
+        })
+        return {status: 'success', data: result}
+    } catch (error) {
+        return {status: 'error' ,massage:error.massage}
+    }
+}
+
+async function findByStatus(status, option) {
+    var query_str = { order_status: status }
+    if (option == 'no_confirm_date') {
+        query_str.confirm_date = { [db.op.eq]: null }
+    }
+    if (option == 'confirm_date') {
+        query_str.confirm_date = { [db.op.ne]: null }
+    }
+    if (l_no != "0") {
+        query_str.l_no = l_no
+    }
     let result = await orders.findAll({
-        where: { order_status: status },
+        order: [
+            ['oid', 'DESC'],
+        ],
+        where: query_str,
         include: [
             {
                 model: ASO_lists,
@@ -76,22 +173,41 @@ async function findByStatus(status) {
         ],
 
     });
+    // 
     return (result)
 }
 
-async function findByHasTruckOrder() {
+async function findByHasTruckOrder(query) {
     try {
-        let result = await orders.findAll({
-            where: {
-                toid: { [db.op.ne]: null }
-            }
+        
+        let page = query.page
+        
+        let where_str = {toid:{[db.op.ne]: null}}
+        if(l_no != "0") {
+            where_str.l_no = l_no
+        }
+        let result = await orders.findAndCountAll({
+            order: [
+                // db.fn('max',db.col('branch_id'))
+                ['oid', 'DESC'],
+            ],
+            where: where_str,
+            include: [
+                {
+                    model: branches,
+                    required: false
+                }
+            ],
+            offset: 5 *(page - 1),
+            limit: 5
+
         });
         return {
-            status: "success", data: result
+            status: "success", data: result.rows , count: result.count
         }
     } catch (err) {
-        console.log(err);
-        return { status: 'error' }
+        
+        return { status: 'error',message:err.message }
     }
 
 }
@@ -122,12 +238,54 @@ async function findById(id) {
     );
     return (result)
 }
-// TODO create wso_detail update id
+
+async function findOrderByIdArray(oids) {
+    try {
+        var result = await orders.findAll({
+            where: {
+                oid: { [db.op.in]: oids }
+            },
+            include: [
+                {
+                    model: branches,
+                    required: false
+                }
+            ]
+        })
+        return { status: 'success', data: result }
+    }
+    catch (err) {
+
+        return { status: 'error' }
+    }
+
+}
+
+
+async function genOrderCode() {
+    return new Promise(async (resolve, reject) => {
+        const str = "B"
+        let month = moment().format('MM').toString().padStart(2, '0')
+        let year = moment().format('YY').toString().padStart(2, '0')
+
+        var count = await orders.count({
+            where: {
+                created_at: {
+                    [db.op.between]: [
+                        moment().startOf('month'),
+                        moment().endOf('month')
+                    ]
+                }
+            }
+        })
+        count = (count + 1).toString().padStart(3, '0')
+        var order_code = str + year + month + count
+        resolve(order_code)
+    })
+}
 
 async function create_by_form(body, files = "") {
     try {
-
-
         let form = JSON.parse(body.form)
         let aso_result = ''
         let wso_result = ''
@@ -148,6 +306,10 @@ async function create_by_form(body, files = "") {
             //TODO อย่าลืมทำ read spec sheet detail
             // spec_sheet_result = await create_wso_set(wso_detail.wso_lists, wso_detail.wso_goods)
         }
+
+        let order_code = await genOrderCode()
+
+
         //*create orders
         let result = await orders.create(
             {
@@ -164,10 +326,16 @@ async function create_by_form(body, files = "") {
                 remark: form.remark,
                 alid: aso_result.alid,
                 wlid: wso_result.wlid,
-
+                order_code: order_code,
                 order_status: 1,
             }
         )
+
+
+
+
+
+
 
         //* get order_id add to path
         var dir_path = `${__dirname}/../../public/files/${result.oid}` //process.env.DIR_FILE_PATH + result.oid
@@ -231,7 +399,7 @@ async function create_by_form(body, files = "") {
         return { status: 'success' }
     }
     catch (err) {
-        console.log(err);
+
         return { status: "error", data: err.message }
     }
 }
@@ -239,7 +407,7 @@ async function create_by_form(body, files = "") {
 async function create_aso_set(aso_lists, aso_goods) {
     return new Promise(async (resolve, reject) => {
         try {
-            aso_result = await ASO_lists.create({
+            var aso_result = await ASO_lists.create({
                 cus_id: aso_lists.cus_id,
                 aso_id: aso_lists.aso_id,
                 doc_date: aso_lists.doc_date,
@@ -291,7 +459,7 @@ async function create_aso_set(aso_lists, aso_goods) {
 async function create_wso_set(wso_lists, wso_goods) {
     return new Promise(async (resolve, reject) => {
         try {
-            wso_result = await WSO_lists.create({
+            var wso_result = await WSO_lists.create({
                 wso_id: wso_lists.wso_id,
                 doc_date: wso_lists.doc_date,
                 ship_date: wso_lists.ship_date,
@@ -323,7 +491,7 @@ async function create_wso_set(wso_lists, wso_goods) {
             }
         }
         catch (err) {
-            console.log(err);
+
             reject(err)
         }
 
@@ -352,7 +520,7 @@ async function create_by_files(body, aso_file, wso_file) {
         }
     }
     catch (err) {
-        console.log(err)
+
     }
 }
 
@@ -374,7 +542,7 @@ async function deleteOneOtherFile(oid, file_name) {
         return result
 
     } catch (err) {
-        console.log(err)
+
     }
 }
 
@@ -436,7 +604,7 @@ async function create_with_file(body, aso_file = "", wso_file = "") {
         var wso = body.wso
         var wso_goods = body.wso_goods
 
-        aso_result = await ASO_lists.create({
+        var aso_result = await ASO_lists.create({
             cus_id: aso.cus_id,
             aso_id: aso.aso_id,
             doc_date: aso.doc_date,
@@ -472,7 +640,7 @@ async function create_with_file(body, aso_file = "", wso_file = "") {
                 })
             }
 
-            wso_result = await WSO_lists.create({
+            var wso_result = await WSO_lists.create({
                 wso_id: wso.wso_id,
                 doc_date: wso.doc_date,
                 ship_date: wso.ship_date,
@@ -528,7 +696,7 @@ async function create_with_file(body, aso_file = "", wso_file = "") {
 async function updateOneOrder(body, files = null) {
     try {
         let form = JSON.parse(body.form)
-        // console.log(form, files)
+        // 
 
         //* update order by id
         let update_result = await orders.update({
@@ -601,8 +769,8 @@ async function updateOneOrder(body, files = null) {
                 }
 
                 for (var i = 0; i < temp_files.length; i++) {
-                    console.log("for");
-                    console.log("loop", temp_files[i]);
+
+
                     var file_path = other_file_path + '/' + utf8.decode(temp_files[i].name);
                     await store_file(temp_files[i], file_path)
                     file_name_lists.push(utf8.decode(temp_files[i].name))
@@ -622,7 +790,7 @@ async function updateOneOrder(body, files = null) {
         return update_result
     }
     catch (err) {
-        console.log(err)
+
         return err
     }
 
@@ -638,7 +806,7 @@ async function listAllFileOnDir(path) {
                 files.forEach(file => {
                     array.push(file)
                 });
-                console.log(array)
+
                 resolve(array)
             });
         } catch (err) {
@@ -690,20 +858,54 @@ async function updateStatus(status_target, oid) {
 }
 
 async function updateType(type_target, oid) {
-    console.log(type_target, oid);
-    // let update_result = await orders.update({
 
-    //     order_status: status_target
+    let update_result = await orders.update({
 
-    // },
-    //     {
-    //         where: {
-    //             oid: oid
-    //         }
-    //     }
-    // )
+        order_status: status_target
 
-    // return update_result
+    },
+        {
+            where: {
+                oid: oid
+            }
+        }
+    )
+
+    return update_result
+}
+
+
+async function updateToFinished(status_target, type_target, oid, problems_target, problem_remark = null, toid) {
+    try {
+        var option = {
+            // toid: null,
+            ship_date: null,
+            confirm_date: null,
+            order_status: status_target,
+            problems: problems_target,
+            order_type_id: type_target,
+            problem_remark: problem_remark,
+            is_show_cost:1,
+            is_finish: 1
+        }
+
+        var update_result = await orders_cost.update(
+            option,
+            {
+                where: { oid: oid, toid: toid, sequence: 2 }
+            })
+        if (update_result[0] == 1) {
+            return { status: 'success' }
+        }
+        else {
+            return { status: 'not changed' }
+        }
+    }
+    catch (err) {
+
+        return { status: 'error' }
+    }
+
 }
 
 async function getFilesById(target = "") {
@@ -726,7 +928,7 @@ async function addOrderToTruckOrder(body) {
     })
 
     await truck_orders.update({
-        drops: drops
+        drops: drops ?? []
     }, {
         where: {
             toid: toid
@@ -751,20 +953,19 @@ async function searchOrders(value) {
         const query_str = {}
         const join_query_str = {}
         var required = true
-        const { cus_po_id , cus_name , order_status , has_truck} = value
+        const { cus_po_id, cus_name, order_status, has_truck } = value
 
         query_str.order_status = order_status
 
-        if(has_truck) {
-            console.log();
+        if (has_truck) {
             query_str.toid = { [db.op.ne]: null };
         }
-        if(cus_po_id) {
-            query_str.cus_po_id =  { [db.op.substring]: cus_po_id };
+        if (cus_po_id) {
+            query_str.cus_po_id = { [db.op.substring]: cus_po_id };
             required = false
         }
-        if(cus_name){
-            join_query_str.branch_name = {[db.op.substring] : cus_name}
+        if (cus_name) {
+            join_query_str.branch_name = { [db.op.substring]: cus_name }
         }
 
 
@@ -779,14 +980,123 @@ async function searchOrders(value) {
                 }
             ]
         })
-        console.log();
+
         return { status: 'success', data: result }
     }
     catch (err) {
-        console.log(err);
+
     }
 
 }
+
+async function getProblemStatus() {
+    try {
+        var result = await problem_status.findAll()
+        return { status: 'success', data: result }
+    }
+    catch (err) {
+
+        return { status: 'error' }
+    }
+
+}
+
+
+async function resetOrdersToSuccess(toid) {
+    try {
+        var _orders = await orders.findAll({
+            attributes: ['oid'],
+            where: { toid: toid },
+            include: [
+                {
+                    model: orders_cost,
+                    where: { is_finish: 1, sequence: 2, toid: toid }
+                }
+            ]
+        })
+        _orders.forEach(async (order) => {
+            var oid = order.oid
+            var order_costs = order.orders_costs[0]
+            var order_status = 2
+            if (order_costs.order_type_id == 4) {
+                order_status = 4
+            }
+
+            await orders.update(
+                {
+                    toid: null,
+                    ship_date: null,
+                    confirm_date: null,
+                    order_status: 4,
+                    problems: order_costs.problems,
+                    order_type_id: order_costs.order_type_id,
+                    problem_remark: order_costs.problem_remark,
+                    order_status: order_status
+                },
+                {
+                    where: { oid: oid },
+                }
+            )
+        })
+        return { status: 'success' }
+
+    }
+    catch (err) {
+
+        return { status: 'error' }
+    }
+}
+
+async function getWSOForChecklists(status) {
+    try {
+        var result = await truck_orders.findAll(
+            {
+                attributes: ['toid', 'truck_code'],
+                where: {
+                    to_status: 3 //* สำหรับเช็คว่า wso ตัวนี้ใบรถยีนยันหรือยัง
+                },
+                include: [
+                    {
+                        attributes: ['wlid'],
+                        model: orders,
+                        include: [{
+
+                            model: WSO_lists,
+                            required: true,
+                            where: {
+                                wl_status: {
+                                    [db.op.in]: status
+                                }
+                            },
+                        }]
+                    }
+                ]
+            }
+
+        )
+        // var result = await WSO_lists.findAll({
+        //     where: {
+        //         wl_status:{
+        //             [db.op.in]:status
+        //         }
+        //     },
+        //     include: [
+        //         {
+        //             model:WSO_goods 
+        //         }
+        //     ]
+        // })
+        return { status: 'success', data: result }
+    } catch (error) {
+
+        return { status: 'error' }
+    }
+
+}
+
+
+
+
 
 
 
@@ -796,6 +1106,7 @@ module.exports = {
     find,
     findByStatus,
     findById,
+    findOrderByIdArray,
     findByConfirmed,
     create_by_files,
     create_by_form,
@@ -807,6 +1118,15 @@ module.exports = {
     addOrderToTruckOrder,
     updateType,
     findByHasTruckOrder,
-    searchOrders
-
+    searchOrders,
+    updateToFinished,
+    getProblemStatus,
+    genOrderCode,
+    resetOrdersToSuccess,
+    getWSOForChecklists,
+    setLNo,
+    search,
+    updateShowCost,
+    findByProblem,
+    test
 }

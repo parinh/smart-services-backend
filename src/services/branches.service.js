@@ -1,5 +1,5 @@
 const db = require('../configs/sql.config');
-const { branches } = db
+const { branches, cost_mapping, orders, truck_orders } = db
 db.sequelize.sync();
 
 async function findAll() {
@@ -41,17 +41,22 @@ async function updateOneBranches(body) {
 }
 
 async function test() {
-    let result = await branches.update({
-        cus_group_name: 'general'
-    }, {
-        where:{
-            cus_group_name: null
-            // cust_name:{ [db.op.like] : ('%big%').toLowerCase()
-                
-            // }
-        }
-    }
-    )
+    let result = await truck_orders.update({
+        order:[
+            // [orders,'oid','ASC']
+        ],
+        include: [
+            {
+                // model: orders,
+                model: orders,
+                separate : true
+            }
+
+        ],
+        
+    })
+
+
     return result
 }
 
