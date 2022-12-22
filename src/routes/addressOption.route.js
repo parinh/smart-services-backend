@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.get("/province/get", async function (req, res, next) {
     try {
-        //* commentslllll
+        //* commentslllllppppp
         res.json(await AddressOption.findAllProvinces())
         
     }
