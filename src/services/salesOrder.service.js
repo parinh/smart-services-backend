@@ -65,13 +65,13 @@ async function test() {
 
 async function search(query) {
     try {
-        
+
         let result = await orders.findAll({
             where: {}
         })
-        return { status: 'success'}
+        return { status: 'success' }
     } catch (error) {
-        return { status:'error',massage:error.message }
+        return { status: 'error', massage: error.message }
     }
 }
 
@@ -99,40 +99,40 @@ async function find() {
 }
 //TODO branch search by name cust code
 
-async function updateShowCost(_orders){
+async function updateShowCost(_orders) {
     try {
-        
-        for(let order of _orders) {
-            
+
+        for (let order of _orders) {
+
             await orders.update({
-                is_show_cost:order.is_show_cost
+                is_show_cost: order.is_show_cost
             }
-            ,{
-                where:{oid:order.oid}
-            })
-        } 
+                , {
+                    where: { oid: order.oid }
+                })
+        }
         return { status: 'success' }
     } catch (error) {
-        
-        return { status: 'error' ,massage:error.massage}
+
+        return { status: 'error', massage: error.massage }
     }
 }
 
-async function findByProblem(){
+async function findByProblem() {
     try {
         var result = await orders.findAll({
-            where:{
-                order_type_id:2
+            where: {
+                order_type_id: 2
             }
-            ,include:[
+            , include: [
                 {
-                    model:branches
+                    model: branches
                 }
             ]
         })
-        return {status: 'success', data: result}
+        return { status: 'success', data: result }
     } catch (error) {
-        return {status: 'error' ,massage:error.massage}
+        return { status: 'error', massage: error.massage }
     }
 }
 
@@ -179,11 +179,11 @@ async function findByStatus(status, option) {
 
 async function findByHasTruckOrder(query) {
     try {
-        
+
         let page = query.page
-        
-        let where_str = {toid:{[db.op.ne]: null}}
-        if(l_no != "0") {
+
+        let where_str = { toid: { [db.op.ne]: null } }
+        if (l_no != "0") {
             where_str.l_no = l_no
         }
         let result = await orders.findAndCountAll({
@@ -198,16 +198,16 @@ async function findByHasTruckOrder(query) {
                     required: false
                 }
             ],
-            offset: 5 *(page - 1),
+            offset: 5 * (page - 1),
             limit: 5
 
         });
         return {
-            status: "success", data: result.rows , count: result.count
+            status: "success", data: result.rows, count: result.count
         }
     } catch (err) {
-        
-        return { status: 'error',message:err.message }
+
+        return { status: 'error', message: err.message }
     }
 
 }
@@ -885,7 +885,7 @@ async function updateToFinished(status_target, type_target, oid, problems_target
             problems: problems_target,
             order_type_id: type_target,
             problem_remark: problem_remark,
-            is_show_cost:1,
+            is_show_cost: 1,
             is_finish: 1
         }
 
@@ -1049,7 +1049,7 @@ async function resetOrdersToSuccess(toid) {
 
 async function getWSOForChecklists(status) {
     try {
-        var result = await truck_orders.findAll(
+        var results = await truck_orders.findAll(
             {
                 attributes: ['toid', 'truck_code'],
                 where: {
@@ -1074,6 +1074,9 @@ async function getWSOForChecklists(status) {
             }
 
         )
+        var arr = results.filter(result => {
+            return result.orders.length > 0
+        })
         // var result = await WSO_lists.findAll({
         //     where: {
         //         wl_status:{
@@ -1086,7 +1089,7 @@ async function getWSOForChecklists(status) {
         //         }
         //     ]
         // })
-        return { status: 'success', data: result }
+        return { status: 'success', data: arr }
     } catch (error) {
 
         return { status: 'error' }

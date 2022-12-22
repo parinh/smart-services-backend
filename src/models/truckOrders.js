@@ -12,7 +12,6 @@ module.exports = (sequelize, Sequelize) => {
       remark:{type: Sequelize.TEXT,allowNull: true, field: 'remark'},
       truck_code:{type: Sequelize.STRING(25),allowNull: true, field: 'truck_code'},
       to_status:{type: Sequelize.INTEGER(1),default:1, field: 'to_status'},
-      cl_status:{type: Sequelize.INTEGER(1),default:1, field: 'cl_status'},
       l_no:{type: Sequelize.INTEGER(2), field: 'l_no'},
       cost: { type: Sequelize.FLOAT(20,5), allowNull: true,default: 0,field:'cost'},
       start_date:{type: Sequelize.DATEONLY, field: 'start_date'},

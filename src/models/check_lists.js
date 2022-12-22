@@ -5,7 +5,7 @@ module.exports = (sequelize, Sequelize) => {
         clid:{type: Sequelize.INTEGER(11), primaryKey: true, autoIncrement: true, field: 'clid' },
         wgid:{type: Sequelize.INTEGER(11),foreignKey:true, allowNull: true, field: 'wgid' },
         toid:{type: Sequelize.INTEGER(11),foreignKey:true, allowNull: true, field: 'toid' },
-        cl_status:{type: Sequelize.INTEGER(2), field: 'cl_status' },
+        is_put_out:{type: Sequelize.TINYINT(1), field: 'is_put_out' },
         // shortage_type:{type: Sequelize.ENUM(['ขาดนับคลัง','ขาดหน้ารถ','ขาดหน้างาน']),default:'ขาดนับคลัง' , field: 'shortage_type' },
 
         number:{type: Sequelize.INTEGER(11),default:0 ,allowNull: true, field: 'number' },
@@ -15,6 +15,7 @@ module.exports = (sequelize, Sequelize) => {
         detail:{type: Sequelize.TEXT,allowNull: true, field: 'detail' }, 
         created_at:{type: Sequelize.DATE, field: 'created_at'},
         put_out_time:{type: Sequelize.DATE,allowNull: true, field: 'put_out_time'},
+        warehouse:{type: Sequelize.STRING(255),allowNull: true, field: 'warehouse'},
         
       },
       {

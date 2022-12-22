@@ -53,7 +53,6 @@ router.get("/get/by/toid", async function (req, res, next) {
 router.get("/get/by/oid", async function (req, res, next) {
     try {
         var wlid = req.query.wlid;
-
         res.json(await checkLists.findCheckListForPickOutForm(wlid))
     }
     catch (err) { 
@@ -76,6 +75,15 @@ router.get("/goods-status/get", async function (req, res, next) {
 router.patch("/update", async function (req, res, next) {
     try {
         res.json(await checkLists.updateCheckLists(req.body))
+    }
+    catch (err) { 
+        res.json(err)
+    }
+});
+
+router.patch("/update/out-number", async function (req, res, next) {
+    try {
+        res.json(await checkLists.updateCheckListsOutNumber(req.body))
     }
     catch (err) { 
         res.json(err)

@@ -4,6 +4,7 @@ db.sequelize.sync();
 
 async function updateBranch(body) {
     try {
+        console.log(body);
         let result = await branches.update(
 
             {

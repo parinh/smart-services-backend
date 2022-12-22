@@ -1,4 +1,5 @@
 const db = require('../configs/sql.config');
+const moment = require('moment');
 const { orders, WSO_lists, WSO_goods, problem_status, check_lists, truck_orders } = db
 db.sequelize.sync();
 
@@ -74,7 +75,13 @@ async function findWaitingPutOut(toid) {
         //* หยิบ wlid ทั้งหมดใน toid นี้มาแล้วเช็คว่าอันไหนทำแล้วบ้างจาก wl_status
         var result = await orders.findAll({
             where: { toid: toid },
-            include: [{
+            include: [
+                {
+                    model:truck_orders,
+                    attributes: ['truck_code'],
+                    required:true
+                },
+                {
                 model: WSO_lists,
                 require: true,
                 // include: [
@@ -164,6 +171,27 @@ async function updateCheckLists(goods) {
 
     }
 }
+async function updateCheckListsOutNumber(goods) {
+    try {
+        var now = moment().format()
+        for (let good of goods) {
+            await check_lists.update({
+                out_number: good.out_number,
+                put_out_time: now,
+                is_put_out:1
+            }
+                , {
+                    where: { clid: good.clid }
+                })
+        }
+        return { status: "success" }
+
+    } catch (error) {
+        console.log(error);
+        return { status: "error" }
+
+    }
+}
 
 async function createChecklists(goods) {
     try {
@@ -182,6 +210,7 @@ async function createChecklists(goods) {
                 status: good.status,
                 number: good.number ?? 0,
                 detail: good.detail,
+                warehouse:good.warehouse,
                 times: times
             })
         }
@@ -301,6 +330,9 @@ async function findCheckListForPickOutForm(wlid) {
             include: [{
                 model: WSO_goods,
                 include: [{
+                    where:{
+                        is_put_out:0
+                    },
                     model: check_lists
                 }]
             }]
@@ -387,6 +419,7 @@ module.exports = {
     updateWSOListStatus,
     findWaitingPutOut,
     findCheckListForPickOutForm,
+    updateCheckListsOutNumber,
     updateCheckLists
 
 }

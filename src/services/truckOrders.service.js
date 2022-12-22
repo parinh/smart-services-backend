@@ -70,7 +70,7 @@ async function findAll(status = []) {
         return { status: 'success', data: result };
     }
     catch (err) {
-        return { status: 'error' }
+        return { status: 'error',message: err.message}
     }
 
 }
