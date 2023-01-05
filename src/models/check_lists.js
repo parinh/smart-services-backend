@@ -15,7 +15,7 @@ module.exports = (sequelize, Sequelize) => {
         detail:{type: Sequelize.TEXT,allowNull: true, field: 'detail' }, 
         created_at:{type: Sequelize.DATE, field: 'created_at'},
         put_out_time:{type: Sequelize.DATE,allowNull: true, field: 'put_out_time'},
-        warehouse:{type: Sequelize.STRING(255),allowNull: true, field: 'warehouse'},
+        warehouse_id: { type: Sequelize.INTEGER(11), defaultValue: 1, field: 'warehouse_id' },
         
       },
       {

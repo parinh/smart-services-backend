@@ -122,6 +122,12 @@ const sequelize = new Sequelize(
   db.orders.hasMany(db.orders_cost,{foreignKey:'oid'})
   db.orders_cost.belongsTo(db.orders,{foreignKey:'oid',targetKey:'oid'})
 
+  db.warehouses.hasMany(db.WSO_goods,{foreignKey:'warehouse_id'})
+  db.WSO_goods.belongsTo(db.warehouses,{foreignKey:'warehouse_id',targetKey:'warehouse_id'})
+
+  db.warehouses.hasMany(db.check_lists,{foreignKey:'warehouse_id'})
+  db.check_lists.belongsTo(db.warehouses,{foreignKey:'warehouse_id',targetKey:'warehouse_id'})
+
   // db.team.hasMany(
   //   db.player, 
   //   {

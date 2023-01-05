@@ -101,10 +101,11 @@ router.get("/get/is_confirm/:value", async function (req, res, next) {
     }
 })
 
+
 router.get("/get/wso", async function (req, res, next) {
     try {
-        var status = req.query.status.split(',')
-        res.json(await salesOrderServices.getWSOForChecklists(status));
+        // var status = req.query.status.split(',')
+        res.json(await salesOrderServices.getWSOForChecklists());
     }
     catch (err) {
         res.json(err)

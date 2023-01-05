@@ -1,13 +1,13 @@
 const db = require('../configs/sql.config');
 const moment = require('moment');
-const { orders, WSO_lists, WSO_goods, problem_status, check_lists, truck_orders } = db
+const { warehouses, orders, WSO_lists, WSO_goods, problem_status, check_lists, truck_orders } = db
 db.sequelize.sync();
 
 async function findAllOrderWithWSO() {
     try {
         let result = await orders.findAll({
             where: {
-                toid: {
+                wlid: {
                     [db.op.not]: null
                 }
             },
@@ -49,11 +49,15 @@ async function findWSOById(wlid, toid) {
                     model: WSO_goods,
                     required: false,
                     include: [{
+                        model: warehouses
+                    }, {
                         model: check_lists,
                         required: false,
                         where: where_obj,
                         separate: true,
                         include: [{
+                            model:warehouses
+                        },{
                             model: truck_orders,
                             attributes: ['toid', 'truck_code']
                         }]
@@ -62,9 +66,11 @@ async function findWSOById(wlid, toid) {
                 ]
             }
         )
+        console.log("result");
         return { status: 'success', data: result }
     }
     catch (err) {
+        console.log(err.message);
         return { status: err }
     }
 
@@ -74,22 +80,22 @@ async function findWaitingPutOut(toid) {
     try {
         //* หยิบ wlid ทั้งหมดใน toid นี้มาแล้วเช็คว่าอันไหนทำแล้วบ้างจาก wl_status
         var result = await orders.findAll({
-            where: { toid: toid },
+            where: { toid: toid, wlid:{[db.op.ne] : null} },
             include: [
                 {
-                    model:truck_orders,
+                    model: truck_orders,
                     attributes: ['truck_code'],
-                    required:true
+                    required: true
                 },
                 {
-                model: WSO_lists,
-                require: true,
-                // include: [
-                //    {
-                //     model:WSO_goods
-                //    }
-                // ]
-            }]
+                    model: WSO_lists,
+                    require: true,
+                    // include: [
+                    //    {
+                    //     model:WSO_goods
+                    //    }
+                    // ]
+                }]
         })
         return { status: 'success', data: result }
 
@@ -157,7 +163,7 @@ async function updateCheckLists(goods) {
                 number: good.number,
                 detail: good.detail,
                 out_number: good.out_number,
-                put_out_time:good.put_out_time
+                put_out_time: good.put_out_time
             }
                 , {
                     where: { clid: good.clid }
@@ -178,7 +184,7 @@ async function updateCheckListsOutNumber(goods) {
             await check_lists.update({
                 out_number: good.out_number,
                 put_out_time: now,
-                is_put_out:1
+                is_put_out: 1
             }
                 , {
                     where: { clid: good.clid }
@@ -210,7 +216,7 @@ async function createChecklists(goods) {
                 status: good.status,
                 number: good.number ?? 0,
                 detail: good.detail,
-                warehouse:good.warehouse,
+                warehouse: good.warehouse,
                 times: times
             })
         }
@@ -268,7 +274,7 @@ async function createChecklists(goods) {
 
     }
     catch (err) {
-
+console.log(err.message);
         return { status: 'error' }
     }
 }
@@ -330,8 +336,8 @@ async function findCheckListForPickOutForm(wlid) {
             include: [{
                 model: WSO_goods,
                 include: [{
-                    where:{
-                        is_put_out:0
+                    where: {
+                        is_put_out: 0
                     },
                     model: check_lists
                 }]
@@ -392,6 +398,25 @@ async function updateWSOListStatus(body) {
     }
 }
 
+async function updateWSOGoodWareHouse(goods){
+    try {
+        for(let good of goods) {
+            // console.log(good);
+            await WSO_goods.update(
+                {
+                    warehouse_id: good.warehouse_id
+                }, {
+                where: { wgid: good.wgid }
+            }
+            )
+        }
+        return ({status: 'success'})
+    } catch (error) {
+        console.log(error.message);
+        return ({stauts:'error',data:error.message})
+    }
+}
+
 // async function findAllProvinces(){
 //     let result = await provinces.findAll();
 
@@ -420,6 +445,7 @@ module.exports = {
     findWaitingPutOut,
     findCheckListForPickOutForm,
     updateCheckListsOutNumber,
-    updateCheckLists
+    updateCheckLists,
+    updateWSOGoodWareHouse
 
 }

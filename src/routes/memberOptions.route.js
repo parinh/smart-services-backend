@@ -26,7 +26,6 @@ router.get("/get/sub_contract", async function (req, res, next) {
 
 router.get("/get/monthly", async function (req, res, next) {
     try {
-        console.log("monthly");
         res.json(await MemberOptionsService.findMonthlyData(req.query))
         // res.json(await MemberOptionsService.findMonthlyData(req.query))
     }

@@ -80,6 +80,14 @@ router.patch("/update", async function (req, res, next) {
         res.json(err)
     }
 });
+router.patch("/wso-goods/update", async function (req, res, next) {
+    try {
+        res.json(await checkLists.updateWSOGoodWareHouse(req.body))
+    }
+    catch (err) { 
+        res.json(err)
+    }
+});
 
 router.patch("/update/out-number", async function (req, res, next) {
     try {

@@ -63,9 +63,19 @@ async function groupSubContract() {
 
 async function findMonthlyData(params) {
     try {
+        console.log(params);
+        var where_str = {}
+        if(params.subcontract){
+            where_str.sub_contract = params.subcontract
+        }
+        else{
+            console.log("else");
+            // where_str.sub_contract = {[db.op.ne] : null}
+        }
+        console.log(where_str);
         var sub_contract_result = await member_options.findAll({
             // group:['sub_contract'],
-            where: { sub_contract: params.sub_contract },
+            where: where_str,
             attributes: ['sub_contract'],
             include: [
                 {

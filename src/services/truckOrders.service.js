@@ -177,26 +177,45 @@ async function create(body) {
         let l_no = body.l_no
         let truck_code = await genTruckCode()
 
-        let result = await truck_orders.create({
-            drops: oids ?? [],
-            truck_code:truck_code,
-            l_no: l_no
-        })
-        for (let i = 0; i < oids.length; i++) {
-            await orders.update({
-                order_status: 3,
-                toid: result.toid,
-
-            }, {
-                where: { oid: oids[i] }
+        let has_truck_oid = await orders.findAll({
+            attributes:['order_code'],
+            where:{
+                oid:{[db.op.in] : oids},
+                toid:{[db.op.ne] : null}
             }
-            )
+        })
+
+        if(has_truck_oid.length > 0){
+            return {status:'has truck',data:has_truck_oid}
         }
-        return result
+        else{
+        
+            let result = await truck_orders.create({
+                drops: oids ?? [],
+                truck_code:truck_code,
+                l_no: l_no
+            })
+
+            for (let i = 0; i < oids.length; i++) {
+                await orders.update({
+                    order_status: 3,
+                    toid: result.toid,
+    
+                }, {
+                    where: { oid: oids[i] }
+                }
+                )
+            }
+            
+            return {status:'success'}
+        }
+
+
+        
     }
     catch (err) {
-
-        return err
+console.log(err);
+        return {status:"error",data:err.message}
     }
 }
 
