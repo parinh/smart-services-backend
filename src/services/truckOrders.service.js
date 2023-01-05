@@ -507,6 +507,58 @@ async function getCostDetail (toid){
 
 
 
+async function searchByTruckCode(params){
+    try {
+        let truck_code = params.truck_code
+        let status = params.status.split (',')
+
+        let result = await truck_orders.findAll({
+            where: {
+              [db.op.and]: {
+                truck_code: { [db.op.substring]: truck_code },
+                to_status: { [db.op.in] : status}
+              }
+            },
+            include: [
+                {
+                    model: member_options,
+                    required: false,
+                    include: [
+                        {
+                            model: vehicle_types,
+                            required: false,
+                        }
+                    ]
+                },
+                {
+                    model: orders,
+                    required: false,
+                    include: [
+                        {
+                            model: branches,
+                            required: false
+                        }
+                    ]
+                },
+
+            ]
+          });
+
+          return {
+            status:'success',
+            data:result
+        }
+    } catch (err) {
+        console.log(err)
+        return {
+            status:'error',
+            data:err.message
+        }
+    }
+}
+
+
+
 
 module.exports = {
     setLNo,
@@ -524,7 +576,8 @@ module.exports = {
     getCost,
     getDaily,
     genTruckCode,
-    getCostDetail
+    getCostDetail,
+    searchByTruckCode
 }
 
 

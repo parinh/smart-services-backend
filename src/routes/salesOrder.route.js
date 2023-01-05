@@ -123,6 +123,7 @@ router.get("/get/is/truck-order", async function (req, res, next) {
 
 router.get("/get/orders/search", async function (req, res, next) {
     try {
+        console.log(req.query)
         res.json(await salesOrderServices.searchOrders(req.query));
     }
     catch (err) {
