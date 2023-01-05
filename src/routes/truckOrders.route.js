@@ -163,6 +163,16 @@ router.get("/get/:id", async function (req, res, next) {
     }
 });
 
+router.get("/search", async function (req, res, next) {
+    try{
+        res.json(await TruckOrdersService.searchByTruckCode(req.query))
+    }
+    catch (err) { 
+        res.json(err)
+        console.log(err.message)
+    }
+})
+
 
 
 

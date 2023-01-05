@@ -63,63 +63,74 @@ async function groupSubContract() {
 
 async function findMonthlyData(params) {
     try {
-        console.log(params);
-        var where_str = {}
-        if(params.subcontract){
-            where_str.sub_contract = params.subcontract
+        var mbids = await member_options.findAll({
+            attributes: ['mbid'],
+            where: {
+                sub_contract: params.sub_contract
+            }
+        })
+        // console.log(mbids);
+
+        var where_str = {
+            start_date: { [db.op.between]: [params.start_date, params.end_date] },
+            to_status: 8
         }
-        else{
+        if (params.sub_contract) {
+            var mbids = await member_options.findAll({
+                attributes: ['mbid'],
+                where: {
+                    sub_contract: params.sub_contract
+                }
+            })
+            var mbids_arr = mbids.map((obj) => {
+                return obj.mbid
+            })
+
+            where_str.mbid = { [db.op.in]: mbids_arr }
+        }
+        else {
             console.log("else");
-            // where_str.sub_contract = {[db.op.ne] : null}
+            where_str.mbid = { [db.op.ne]: null }
         }
-        console.log(where_str);
-        var sub_contract_result = await member_options.findAll({
+        // console.log(where_str);
+        var sub_contract_result = await truck_orders.findAll({
             // group:['sub_contract'],
             where: where_str,
-            attributes: ['sub_contract'],
             include: [
+
                 {
-                    model: truck_orders,
+                    model: orders_cost,
                     require: true,
                     where: {
-                        start_date: { [db.op.between]: [params.start_date, params.end_date] },
-                        to_status:8
+                        sequence: 2,
+                        is_show_cost:1
                     },
                     include: [
-                     
+                        { model: branches }
+                    ]
+                },
+                {
+                    model: member_options,
+                    require: true,
+                    include: [
                         {
-                            model: orders_cost,
-                            require: true,
-                            where:{
-                                sequence:2
-                            },
-                            include: [
-                                { model: branches }
-                            ]
-                        },
-                        {
-                            model: member_options,
-                            require: true,
-                            include: [
-                                {
-                                    model: vehicle_types
-                                }
-                            ]
+                            model: vehicle_types
                         }
                     ]
                 }
-            ],
-        })
-        return {
-            status: 'success', data: sub_contract_result
-        }
+            ]
+  
+    })
+    return {
+        status: 'success', data: sub_contract_result, mbids: mbids
     }
+}
     catch (err) {
-        console.log(err);
-        return {
-            status: 'error'
-        }
+    console.log(err.message);
+    return {
+        status: 'error'
     }
+}
 
 }
 

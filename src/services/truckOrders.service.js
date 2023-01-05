@@ -1,6 +1,6 @@
 const db = require('../configs/sql.config');
 const moment = require('moment');
-const {orders_cost, truck_orders, orders, member_options, branches, vehicle_types, warehouses, WSO_lists, WSO_goods, cost_mapping, cost_area_type, cost_k_type } = db
+const { orders_cost, truck_orders, orders, member_options, branches, vehicle_types, warehouses, WSO_lists, WSO_goods, cost_mapping, cost_area_type, cost_k_type } = db
 db.sequelize.sync();
 let l_no = "0"
 
@@ -37,7 +37,7 @@ async function findAll(status = []) {
                 [db.op.in]: status
             }
         }
-        if(l_no != "0"){
+        if (l_no != "0") {
             where_str.l_no = l_no
         }
         let result = await truck_orders.findAll({
@@ -70,14 +70,14 @@ async function findAll(status = []) {
         return { status: 'success', data: result };
     }
     catch (err) {
-        return { status: 'error',message: err.message}
+        return { status: 'error', message: err.message }
     }
 
 }
 
 
 async function findById(id) {
-    try{
+    try {
         let result = await truck_orders.findOne({
             where: { toid: id },
             include: [
@@ -106,22 +106,22 @@ async function findById(id) {
                         {
                             model: orders_cost,
                             required: false,
-                            where:{
-                                toid:id
+                            where: {
+                                toid: id
                             }
                         }
                     ]
                 },
-    
+
             ]
         })
-    
+
         return (result)
     }
     catch (err) {
-        
+
     }
-    
+
 }
 
 async function createByForm(form) {
@@ -136,7 +136,7 @@ async function createByForm(form) {
             remark: form.remark,
             warehouse_id: form.warehouse_id,
             start_date: form.start_date,
-            truck_code:truck_code,
+            truck_code: truck_code,
             drops: []
         })
         return { status: 'success', data: result }
@@ -148,24 +148,24 @@ async function createByForm(form) {
 
 }
 
-async function genTruckCode(){
-    return new Promise(async(resolve, reject) => {
+async function genTruckCode() {
+    return new Promise(async (resolve, reject) => {
         const str = "T"
-        let month = moment().format('MM').toString().padStart(2,'0')
-        let year = moment().format('YY').toString().padStart(2,'0')
+        let month = moment().format('MM').toString().padStart(2, '0')
+        let year = moment().format('YY').toString().padStart(2, '0')
 
         var count = await truck_orders.count({
             where: {
                 created_at: {
-                    [db.op.between]:[
+                    [db.op.between]: [
                         moment().startOf('month'),
                         moment().endOf('month')
                     ]
                 }
             }
         })
-        count = (count+1).toString().padStart(3,'0')
-        var truck_code  = str+year+month+count
+        count = (count + 1).toString().padStart(3, '0')
+        var truck_code = str + year + month + count
         resolve(truck_code)
     })
 }
@@ -178,21 +178,21 @@ async function create(body) {
         let truck_code = await genTruckCode()
 
         let has_truck_oid = await orders.findAll({
-            attributes:['order_code'],
-            where:{
-                oid:{[db.op.in] : oids},
-                toid:{[db.op.ne] : null}
+            attributes: ['order_code'],
+            where: {
+                oid: { [db.op.in]: oids },
+                toid: { [db.op.ne]: null }
             }
         })
 
-        if(has_truck_oid.length > 0){
-            return {status:'has truck',data:has_truck_oid}
+        if (has_truck_oid.length > 0) {
+            return { status: 'has truck', data: has_truck_oid }
         }
-        else{
-        
+        else {
+
             let result = await truck_orders.create({
                 drops: oids ?? [],
-                truck_code:truck_code,
+                truck_code: truck_code,
                 l_no: l_no
             })
 
@@ -200,28 +200,28 @@ async function create(body) {
                 await orders.update({
                     order_status: 3,
                     toid: result.toid,
-    
+
                 }, {
                     where: { oid: oids[i] }
                 }
                 )
             }
-            
-            return {status:'success'}
+
+            return { status: 'success' }
         }
 
 
-        
+
     }
     catch (err) {
-console.log(err);
-        return {status:"error",data:err.message}
+        console.log(err);
+        return { status: "error", data: err.message }
     }
 }
 
 async function update(toid, body) {
     try {
-        let result = await truck_orders.update({
+        await truck_orders.update({
             mbid: body.mbid,
             sup_amount: body.sup_amount,
             emps: body.emps,
@@ -229,15 +229,23 @@ async function update(toid, body) {
             warehouse_id: body.warehouse_id,
             start_date: body.start_date,
             drops: body.drops ?? [],
-            longest_province : body.longest_province,
+            longest_province: body.longest_province,
             longest_district: body.longest_district,
-            l_no : body.l_no
+            l_no: body.l_no
 
         }, {
             where: { toid: toid }
         })
 
-        return { status: 'success' }
+        var result = await truck_orders.findOne({
+            where: {
+                toid: toid
+            }
+        })
+        return { status: 'success', data: result }
+
+
+
     }
     catch (err) {
 
@@ -302,7 +310,7 @@ async function getVehicleTypes() {
 
 async function updateStatus(target, toid) {
     try {
-        
+
         // let shortage = [
         //     {
         //         "car": 0,
@@ -333,7 +341,7 @@ async function updateStatus(target, toid) {
 
     }
     catch (err) {
-        
+
         return { status: 'error', data: err }
     }
 
@@ -403,11 +411,11 @@ async function getCost(vehicle_type, province, district, warehouse_id) {
                 cost_area: (result.dataValues?.cost_area_type?.dataValues[attribute_join] ?? null),
                 days: result.dataValues.days
             };
-            
+
             return { status: 'success', data: obj }
         }
         else {
-            
+
             return { status: 'not found' }
         }
 
@@ -415,7 +423,7 @@ async function getCost(vehicle_type, province, district, warehouse_id) {
 
     }
     catch (err) {
-        
+
         return { status: 'error' }
     }
 }
@@ -465,49 +473,49 @@ async function removeOrder(toid, oid) {
 }
 
 async function getDaily(date) {
-    try{
+    try {
         var result = await truck_orders.findAll({
             where: {
                 start_date: {
-                    [db.op.eq] : date
+                    [db.op.eq]: date
                 }
             },
-            include:[
+            include: [
                 {
-                    model:member_options,
+                    model: member_options,
                     required: false,
                     include: [
-                        {model:vehicle_types}
+                        { model: vehicle_types }
                     ]
                 }
-                
+
             ]
         })
 
-        return {status:'success' ,data:result}
+        return { status: 'success', data: result }
     }
     catch (err) {
         // 
-        return { status: 'error'}
+        return { status: 'error' }
     }
-    
+
 }
 
-async function getCostDetail (toid){
-    try{
+async function getCostDetail(toid) {
+    try {
         var result = await truck_orders.findOne({
             // attributes: ['drops','toid','truck_code'],
-            where:{
-                toid:toid
+            where: {
+                toid: toid
             },
-            include:[
+            include: [
                 {
-                    model:orders_cost,
+                    model: orders_cost,
                     required: true,
                     include: [
-                        {   
-                            attributes:['oid','cus_po_id','order_code','order_type_id'],
-                            model:orders,
+                        {
+                            attributes: ['oid', 'cus_po_id', 'order_code', 'order_type_id'],
+                            model: orders,
                             required: true,
                             include: [{
                                 model: branches
@@ -517,10 +525,62 @@ async function getCostDetail (toid){
                 }
             ]
         })
-        return {status:'success',data:result}
+        return { status: 'success', data: result }
     }
-    catch (err){
-        return { status: 'error'}
+    catch (err) {
+        return { status: 'error' }
+    }
+}
+
+
+
+async function searchByTruckCode(params) {
+    try {
+        let truck_code = params.truck_code
+        let status = params.status.split(',')
+
+        let result = await truck_orders.findAll({
+            where: {
+                [db.op.and]: {
+                    truck_code: { [db.op.substring]: truck_code },
+                    to_status: { [db.op.in]: status }
+                }
+            },
+            include: [
+                {
+                    model: member_options,
+                    required: false,
+                    include: [
+                        {
+                            model: vehicle_types,
+                            required: false,
+                        }
+                    ]
+                },
+                {
+                    model: orders,
+                    required: false,
+                    include: [
+                        {
+                            model: branches,
+                            required: false
+                        }
+                    ]
+                },
+
+            ]
+        });
+
+        return {
+            status: 'success',
+            data: result
+        }
+    } catch (err) {
+        console.log(err)
+        return {
+            status: 'error',
+            data: err.message
+        }
     }
 }
 
@@ -543,7 +603,8 @@ module.exports = {
     getCost,
     getDaily,
     genTruckCode,
-    getCostDetail
+    getCostDetail,
+    searchByTruckCode
 }
 
 
