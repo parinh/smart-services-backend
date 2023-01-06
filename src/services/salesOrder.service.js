@@ -1041,60 +1041,114 @@ async function resetOrdersToSuccess(toid) {
     return { status: "error" };
   }
 }
-
-async function getWSOForChecklists(status) {
+async function getWSOForChecklists() {
   try {
-    console.log("aaa");
-    console.log(status);
-    var results = await truck_orders.findAll({
-      attributes: ["toid", "truck_code"],
-      where: {
-        to_status: 3, //* สำหรับเช็คว่า wso ตัวนี้ใบรถยีนยันหรือยัง
-      },
-      include: [
-        {
-          attributes: ["wlid"],
-          model: orders,
-          include: [
-            {
-              model: WSO_lists,
-              required: true,
-              // where: {
-              //   // wl_status: {
-              //   //   [db.op.in]: status,
-              //   // },
-              // },
-            },
-            {
-              model:truck_orders
-            }
-          ],
-        },
-      ],
-    });
-    // console.log("aaaaaaaa");
-    // console.log(results);
-    var arr = results.filter((result) => {
-      return result.orders.length > 0;
-    });
-    // var result = await WSO_lists.findAll({
-    //     where: {
-    //         wl_status:{
-    //             [db.op.in]:status
-    //         }
-    //     },
-    //     include: [
-    //         {
-    //             model:WSO_goods
-    //         }
-    //     ]
-    // })
-    return { status: "success", data: arr };
+      var results = await WSO_lists.findAll({
+          attributes: ['wso_id', 'wlid'],
+          include: [{
+              // attributes:['order_code'],
+              model: orders,
+              require: true,
+              include: [{
+                  model: branches,
+                  require: true
+              }, {
+                  // attributes:['truck_code'],
+                  model: truck_orders,
+                  where: { to_status: 3 }, //* สำหรับเช็คว่า wso ตัวนี้ใบรถยีนยันหรือยัง
+                  require: true
+              }]
+          }]
+      })
+      // var results = await truck_orders.findAll(
+      //     {
+      //         attributes: ['toid', 'truck_code'],
+      //         where: {
+      //             to_status: 3 //* สำหรับเช็คว่า wso ตัวนี้ใบรถยีนยันหรือยัง
+      //         },
+      //         include: [
+      //             {
+      //                 attributes: ['wlid'],
+      //                 model: orders,
+      //                 include: [{
+      //                     model: WSO_lists,
+      //                     required: true,
+      //                     //* ท่าใหม่ไม่แน่ใจว่าต้องใช้ไหม
+      //                     // where: {
+      //                     //     wl_status: {
+      //                     //         [db.op.in]: status
+      //                     //     }
+      //                     // },
+      //                 }]
+      //             }
+      //         ]
+      //     }
+
+      // )
+      var arr = results.filter(result => {
+          return result.order != null
+      })
+
+      return { status: 'success', data: arr }
   } catch (error) {
-    console.log(error);
-    return { status: "error" };
+      console.log(error.message);
+      return { status: 'error' }
   }
+
 }
+// async function getWSOForChecklists(status) {
+//   try {
+//     console.log("aaa");
+//     console.log(status);
+//     var results = await truck_orders.findAll({
+//       attributes: ["toid", "truck_code"],
+//       where: {
+//         to_status: 3, //* สำหรับเช็คว่า wso ตัวนี้ใบรถยีนยันหรือยัง
+//       },
+//       include: [
+//         {
+//           attributes: ["wlid"],
+//           model: orders,
+//           include: [
+//             {
+//               model: WSO_lists,
+//               required: true,
+//               // where: {
+//               //   // wl_status: {
+//               //   //   [db.op.in]: status,
+//               //   // },
+//               // },
+//             },
+//             {
+//               model:truck_orders
+//             }
+//           ],
+//         },
+//       ],
+//     });
+//     // console.log("aaaaaaaa");
+//     // console.log(results);
+//     var arr = results.filter((result) => {
+//       return result.orders.length > 0;
+//     });
+//     // var result = await WSO_lists.findAll({
+//     //     where: {
+//     //         wl_status:{
+//     //             [db.op.in]:status
+//     //         }
+//     //     },
+//     //     include: [
+//     //         {
+//     //             model:WSO_goods
+//     //         }
+//     //     ]
+//     // })
+//     return { status: "success", data: arr };
+//   } catch (error) {
+//     console.log(error);
+//     return { status: "error" };
+//   }
+// }
 
 module.exports = {
   find,
