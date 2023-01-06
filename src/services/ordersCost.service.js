@@ -103,7 +103,7 @@ async function AddOrdersCost(body) {
         return {status : 'success'}
     }
     catch (err) {
-        
+        console.log(err.message);
         return { status: 'error' }
     }
 }

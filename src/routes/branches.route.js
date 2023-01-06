@@ -27,7 +27,7 @@ router.get("/get/:id", async function(req, res, next) {
 
 
 
-router.post("/test", async function(req, res, next) {
+router.get("/test", async function(req, res, next) {
     try {
         res.json(await BranchesService.test())
     }

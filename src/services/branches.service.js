@@ -1,5 +1,5 @@
 const db = require('../configs/sql.config');
-const { branches, cost_mapping, orders, truck_orders } = db
+const { branches, cost_mapping, orders, truck_orders , orders_cost } = db
 db.sequelize.sync();
 
 async function findAll() {
@@ -41,23 +41,23 @@ async function updateOneBranches(body) {
 }
 
 async function test() {
-    let result = await truck_orders.update({
-        order:[
-            // [orders,'oid','ASC']
-        ],
-        include: [
-            {
-                // model: orders,
-                model: orders,
-                separate : true
-            }
-
-        ],
-        
+    console.log("test");
+    let _orders = await orders.findAll({
+        attributes: ['oid','confirm_date']
     })
 
+    for (var order of _orders){
+        console.log(order.oid);
+        await orders_cost.update({
+            confirm_date: order.confirm_date
+        },{
+            where:{oid:order.oid}
+        })
+    }
 
-    return result
+
+
+    return "success !!!"
 }
 
 module.exports = {

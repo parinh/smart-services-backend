@@ -823,17 +823,14 @@ async function updateToFinished(
   try {
     var option = {
       // toid: null,
-      ship_date: null,
-      confirm_date: null,
+      // ship_date: null,
+      // confirm_date: null,
       order_status: status_target,
       problems: problems_target,
       order_type_id: type_target,
       problem_remark: problem_remark,
-      is_show_cost: 1,
       is_finish: 1,
     };
-
-    console.log(option);
 
     var update_result = await orders_cost.update(option, {
       where: { oid: oid, toid: toid, sequence: 2 },
