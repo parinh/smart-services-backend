@@ -5,12 +5,14 @@ db.sequelize.sync();
 
 async function AddOrdersCost(body) {
     try {
+        console.log('xxxxsssx')
         var toid = body.toid
         var amount = body.summary_cost
         var fuel_percent = body.fuel_percent
         for (var order of body.orders) {
             console.log(order.oid);
             for(var i = 1 ; i <= 2 ; i++){ //* สร้าง order_cost มา 2 ตัว ตัวแรกเป็น log ตัวสองตัวแก้
+                console.log('index : ',i)
                 var find = await orders_cost.findOrCreate({
                     where: {
                         toid: toid,
