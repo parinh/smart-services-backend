@@ -858,6 +858,8 @@ async function addOrderToTruckOrder(body) {
   var toid = body.toid;
   var drops = body.drops;
 
+  console.log(_orders);
+
   var object = _orders.map((order) => {
     return { oid: order };
   });
@@ -873,7 +875,7 @@ async function addOrderToTruckOrder(body) {
     }
   );
 
-  var result = await orders.update(
+  var result = await orders.update( //* update order status
     {
       toid: toid,
       order_status: 3,
@@ -1042,6 +1044,8 @@ async function resetOrdersToSuccess(toid) {
 
 async function getWSOForChecklists(status) {
   try {
+    console.log("aaa");
+    console.log(status);
     var results = await truck_orders.findAll({
       attributes: ["toid", "truck_code"],
       where: {
@@ -1055,16 +1059,21 @@ async function getWSOForChecklists(status) {
             {
               model: WSO_lists,
               required: true,
-              where: {
-                wl_status: {
-                  [db.op.in]: status,
-                },
-              },
+              // where: {
+              //   // wl_status: {
+              //   //   [db.op.in]: status,
+              //   // },
+              // },
             },
+            {
+              model:truck_orders
+            }
           ],
         },
       ],
     });
+    // console.log("aaaaaaaa");
+    // console.log(results);
     var arr = results.filter((result) => {
       return result.orders.length > 0;
     });
@@ -1082,6 +1091,7 @@ async function getWSOForChecklists(status) {
     // })
     return { status: "success", data: arr };
   } catch (error) {
+    console.log(error);
     return { status: "error" };
   }
 }
