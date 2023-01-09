@@ -1,5 +1,5 @@
 const db = require('../configs/sql.config');
-const { branches, cost_mapping, orders, truck_orders , orders_cost } = db
+const { branches, cost_mapping, orders, truck_orders, orders_cost } = db
 db.sequelize.sync();
 
 async function findAll() {
@@ -41,23 +41,48 @@ async function updateOneBranches(body) {
 }
 
 async function test() {
-    console.log("test");
-    let _orders = await orders.findAll({
-        attributes: ['oid','confirm_date']
-    })
-
-    for (var order of _orders){
-        console.log(order.oid);
-        await orders_cost.update({
-            confirm_date: order.confirm_date
-        },{
-            where:{oid:order.oid}
+    try {
+        console.log("test");
+        let toids = await orders_cost.findAll({
+            attributes: ['ocid','toid', 'oid'],
+            where: {
+                ship_date: null
+            }
         })
+        console.log(toids);
+
+        for (var ele of toids) {
+            var result = await truck_orders.findOne({
+                attributes: ['start_date'],
+                where: { toid: ele.toid }
+            })
+            // console.log(result);
+            await orders_cost.update({
+                ship_date: result.start_date
+            }, {
+                where: { toid: ele.toid, oid:ele.oid}
+            })
+            // return result
+        }
+
+
+
+        // console.log(toids);
+        // for (var order of _orders){
+        //     console.log(order.oid);
+        //     await orders_cost.update({
+        //         confirm_date: order.confirm_date
+        //     },{
+        //         where:{oid:order.oid}
+        //     })
+        // }
+
+
+
+        return toids
+    } catch (error) {
+        console.log(error.message);
     }
-
-
-
-    return "success !!!"
 }
 
 module.exports = {
