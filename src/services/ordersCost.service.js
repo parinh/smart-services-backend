@@ -8,6 +8,7 @@ async function AddOrdersCost(body) {
         var toid = body.toid
         var amount = body.summary_cost
         var fuel_percent = body.fuel_percent
+        console.log('cost details:',body.orders[0].cost_detail)
         for (var order of body.orders) {
             console.log(order.oid);
             for(var i = 1 ; i <= 2 ; i++){ //* สร้าง order_cost มา 2 ตัว ตัวแรกเป็น log ตัวสองตัวแก้
@@ -41,7 +42,7 @@ async function AddOrdersCost(body) {
                         dead_line_date: order.dead_line_date,
                         order_type_id: order.order_type_id,
                         days:order.cost_detail.days,
-                        distance:order.distance,
+                        distance:order.cost_detail.distance,
                         chance_cost:order.cost_detail.chance_cost,
                         reimburse_day_cost:order.cost_detail.reimburse_day_cost,
                         stuck_cost:order.cost_detail.stuck_cost,
@@ -49,7 +50,7 @@ async function AddOrdersCost(body) {
                         over_distance_cost:order.cost_detail.over_distance_cost,
                         extra: order.cost_detail.extra,
                         sub_cost:order.cost_detail.sub_cost,
-                        is_show_cost: order.cost_detail.is_show_cost
+                        is_show_cost: order.is_show_cost
     
                     }
                 })
@@ -78,7 +79,7 @@ async function AddOrdersCost(body) {
                         dead_line_date: order.dead_line_date,
                         order_type_id: order.order_type_id,
                         days:order.cost_detail.days,
-                        distance:order.distance,
+                        distance:order.cost_detail.distance,
                         chance_cost:order.cost_detail.chance_cost,
                         reimburse_day_cost:order.cost_detail.reimburse_day_cost,
                         stuck_cost:order.cost_detail.stuck_cost,
@@ -86,7 +87,7 @@ async function AddOrdersCost(body) {
                         over_distance_cost:order.cost_detail.over_distance_cost,
                         extra: order.cost_detail.extra,
                         sub_cost:order.cost_detail.sub_cost,
-                        is_show_cost: order.cost_detail.is_show_cost
+                        is_show_cost: order.is_show_cost
                     }, {
                         where: {
                             toid: toid,

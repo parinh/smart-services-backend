@@ -882,7 +882,7 @@ async function addOrderToTruckOrder(body) {
       },
     }
   );
-  return result;
+  return {status:"success"};
 }
 
 // async function searchOrders(value) {
