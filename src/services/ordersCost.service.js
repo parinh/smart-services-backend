@@ -9,6 +9,7 @@ async function AddOrdersCost(body) {
         var toid = body.toid
         var amount = body.summary_cost
         var fuel_percent = body.fuel_percent
+        console.log('cost details : ',body.cost_details)
         for (var order of body.orders) {
             console.log(order.oid);
             for(var i = 1 ; i <= 2 ; i++){ //* สร้าง order_cost มา 2 ตัว ตัวแรกเป็น log ตัวสองตัวแก้
