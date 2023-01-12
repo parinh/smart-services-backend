@@ -384,7 +384,7 @@ async function getCost(vehicle_type, province, district, warehouse_id) {
         }
 
         let result = await cost_mapping.findOne({
-            attributes: [attribute, 'days', 'acid', 'kcid'],
+            attributes: [attribute, 'days', 'acid', 'kcid','distance'],
             where: {
                 province_name: province,
                 district_name: district,
@@ -410,7 +410,8 @@ async function getCost(vehicle_type, province, district, warehouse_id) {
                 // cost_per_drop : result.dataValues.cost_per_drop,
                 cost_k: (result.dataValues?.cost_k_type?.dataValues[attribute_join] ?? null),
                 cost_area: (result.dataValues?.cost_area_type?.dataValues[attribute_join] ?? null),
-                days: result.dataValues.days
+                days: result.dataValues.days,
+                distance: result.dataValues?.distance
             };
 
             return { status: 'success', data: obj }
