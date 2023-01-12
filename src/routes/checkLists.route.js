@@ -151,9 +151,7 @@ router.patch("/status/update", async function (req, res, next) {
 
 router.delete("/delete", async function (req, res, next) {
     try {
-        var toid = req.query.toid;
-        var times = req.query.times;
-        res.json(await checkLists.destroyCheckList(toid,times))
+        res.json(await checkLists.destroyCheckList(req.query))
     }
     catch (err) { 
         res.json(err)

@@ -1038,7 +1038,7 @@ async function resetOrdersToSuccess(toid) {
   }
 }
 async function getWSOForChecklists() {
-  try {
+  try { //* ถ้า order ที่หยิบ order ไม่มี to fn จะระเบิด
     var results = await WSO_lists.findAll({
       attributes: ['wso_id', 'wlid'],
       include: [{
@@ -1051,7 +1051,7 @@ async function getWSOForChecklists() {
         }, {
           // attributes:['truck_code'],
           model: truck_orders,
-          where: { to_status: 3 }, //* สำหรับเช็คว่า wso ตัวนี้ใบรถยีนยันหรือยัง
+          // where: { to_status: 3 }, //* สำหรับเช็คว่า wso ตัวนี้ใบรถยีนยันหรือยัง ให้เค้าหยิบทุกตัวได้ไปก่อน
           require: true
         }]
       }]
