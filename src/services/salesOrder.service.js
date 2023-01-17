@@ -166,6 +166,73 @@ async function findByStatus(status, option) {
   return result;
 }
 
+//*================================================================
+async function searchOrdersByStatus(query) {
+  try {
+    console.log(query)
+    let search_object = JSON.parse(query.search_object);
+    let page = query.page
+    let itemsPerPage = query.itemsPerPage;
+    let options = JSON.parse(query.options)
+    let query_str = {}
+
+    //*query string conditions-----------------------------------------
+    if(search_object.so_number){
+      query_str.cus_po_id = search_object.so_number
+    }
+    if(search_object.order_code){
+      query_str.order_code = search_object.order_code
+    }
+    if(search_object.sale_id){
+      query_str.sale_id = search_object.sale_id
+    }
+    if(search_object.confirm_date){
+      console.log(search_object.confirm_date)
+    }
+    console.log(search_object.confirm_date);
+    //*----------------------------------------------------------------
+
+
+
+
+
+    // if(options.query_page != 'has_truck'){
+    //   let result = await orders.findAll({
+    //     order: [["oid", "DESC"]],
+    //     where: {
+    //       [db.op.or]:{
+    //         cus_po_id : { [db.op.substring]:search_object.}
+    //       }
+    //     },
+    //     include: [
+    //       {
+    //         model: ASO_lists,
+    //         required: false,
+    //       },
+    //       {
+    //         model: WSO_lists,
+    //         required: false,
+    //       },
+    //       {
+    //         model: branches,
+    //         required: false,
+    //       },
+    //       {
+    //         model: orderTypes,
+    //         required: false,
+    //       },
+    //     ],
+    //   });
+    // }
+
+
+
+  } catch (err) {
+    console.log(err).message
+  }
+}
+//*================================================================
+
 async function findByHasTruckOrder(query) {
   try {
     //* ItemsPerPage กับ page จาก Frontend----------------------------
@@ -1173,4 +1240,5 @@ module.exports = {
   updateShowCost,
   findByProblem,
   test,
+  searchOrdersByStatus,
 };

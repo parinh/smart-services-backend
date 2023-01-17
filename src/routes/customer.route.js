@@ -39,6 +39,14 @@ router.get("/search/:word", async function(req, res, next) {
 
 })
 
+router.get("/customer-groups", async function(req, res, next) {
+    try {
+        res.json(await customerService.findCustomerGroups())
+    } catch (error) {
+        
+    }
+})
+
 
 module.exports = {
     router,

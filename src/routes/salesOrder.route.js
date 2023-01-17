@@ -344,6 +344,15 @@ router.get("/test", async function (req, res, next) {
         res.json(err)
     }
 })
+//*================================================================
+router.get("/search-orders", async function (req, res, next) {
+    try {
+        res.json(await salesOrderServices.searchOrdersByStatus(req.query));
+    }
+    catch (err) {
+        res.json(err)
+    }
+})
 
 
 

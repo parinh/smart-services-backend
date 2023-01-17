@@ -109,6 +109,18 @@ async function findLike(word) {
     return result
 }
 
+async function findCustomerGroups(){
+    try {
+        let results = await db.customer_groups.findAll()
+        
+        return results
+        
+    } catch (err) {
+        console.log(err)
+        return err
+    }
+}
+
 
 
 
@@ -116,5 +128,6 @@ module.exports = {
     createBranch,
     findAll,
     updateBranch,
-    findLike
+    findLike,
+    findCustomerGroups
 }
