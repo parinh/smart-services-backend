@@ -177,9 +177,12 @@ async function updateCheckLists(goods) {
 
     }
 }
-async function updateCheckListsOutNumber(goods) {
+async function updateCheckListsOutNumber(body) {
     try {
-        var now = moment().format()
+        let now = moment().format()
+        let goods = body.goods
+        let wlid = body.wlid
+        // console.log(wlid);
         for (let good of goods) {
             await check_lists.update({
                 out_number: good.out_number,
@@ -191,6 +194,7 @@ async function updateCheckListsOutNumber(goods) {
                     where: { clid: good.clid }
                 })
         }
+        await this.calSumAllCheckList(wlid)
         return { status: "success" }
 
     } catch (error) {
@@ -391,15 +395,19 @@ async function findByTimes(toid, times, wlid) {
     }
 
 }
-async function findCheckListForPickOutForm(wlid) {
+async function findCheckListForPickOutForm(query) {
     try {
-        var result = await WSO_lists.findOne({
-            where: { wlid: wlid },
+        let wlid = query.wlid;
+        let toid = query.toid;
+        console.log(toid);
+        let result = await WSO_lists.findOne({
+            where: { wlid: wlid,},
             include: [{
                 model: WSO_goods,
                 include: [{
                     where: {
-                        is_put_out: 0
+                        is_put_out: 0,
+                        toid:toid
                     },
                     model: check_lists
                 }]
@@ -408,7 +416,7 @@ async function findCheckListForPickOutForm(wlid) {
         })
         return { status: 'success', data: result }
     } catch (error) {
-
+        console.log(error.message);
         return { status: 'error' }
     }
 }
@@ -424,7 +432,7 @@ async function destroyCheckList(query) {
                 times: times
             }
         })
-        var cal_result = await this.calSumAllCheckList(wlid)
+        await this.calSumAllCheckList(wlid)
 
         return { status: 'success' }
 

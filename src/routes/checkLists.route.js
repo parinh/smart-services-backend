@@ -52,8 +52,7 @@ router.get("/get/by/toid", async function (req, res, next) {
 });
 router.get("/get/by/oid", async function (req, res, next) {
     try {
-        var wlid = req.query.wlid;
-        res.json(await checkLists.findCheckListForPickOutForm(wlid))
+        res.json(await checkLists.findCheckListForPickOutForm(req.query))
     }
     catch (err) { 
         console.log(err);
