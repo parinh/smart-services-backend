@@ -112,6 +112,15 @@ async function findById(id) {
                         }
                     ]
                 },
+                {
+                    model: orders_cost,
+                    where:{sequence : 2},
+                    include: [
+                        {
+                            model:branches
+                        }
+                    ]
+                }
 
             ]
         })
