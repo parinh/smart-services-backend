@@ -78,6 +78,7 @@ async function findAll(status = []) {
 
 async function findById(id) {
     try {
+        console.log(id);
         let result = await truck_orders.findOne({
             where: { toid: id },
             include: [
@@ -114,21 +115,22 @@ async function findById(id) {
                 },
                 {
                     model: orders_cost,
-                    where:{sequence : 2},
+                    required: false,
+                    where: { sequence: 2 },
                     include: [
                         {
-                            model:branches
+                            model: branches,
+                            required: false
                         }
                     ]
                 }
 
             ]
         })
-
         return (result)
     }
     catch (err) {
-
+        return ({ status: 'error', data: err.message })
     }
 
 }
@@ -149,7 +151,7 @@ async function createByForm(form) {
             drops: []
         })
         return { status: 'success', data: result }
-        
+
     }
     catch (err) {
 
@@ -393,7 +395,7 @@ async function getCost(vehicle_type, province, district, warehouse_id) {
         }
 
         let result = await cost_mapping.findOne({
-            attributes: [attribute, 'days', 'acid', 'kcid','distance'],
+            attributes: [attribute, 'days', 'acid', 'kcid', 'distance'],
             where: {
                 province_name: province,
                 district_name: district,
