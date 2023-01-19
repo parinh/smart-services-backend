@@ -169,7 +169,6 @@ async function findByStatus(status, option) {
 //*================================================================
 async function searchOrdersByStatus(query) {
   try {
-    console.log(query)
     let search_object = JSON.parse(query.search_object);
     let page = query.page
     let itemsPerPage = query.itemsPerPage;
@@ -190,6 +189,11 @@ async function searchOrdersByStatus(query) {
       console.log(search_object.confirm_date)
     }
     console.log(search_object.confirm_date);
+    // const SLASH_DMY = 'DD/MM/YYYY';
+    // console.log('sysdate ::==',moment());
+    // console.log('sysdate ::==',moment().format(SLASH_DMY));
+    const SLASH_DMY = 'yyyy-MM-d';
+    
     //*----------------------------------------------------------------
 
 
