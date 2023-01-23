@@ -345,6 +345,14 @@ router.get("/test", async function (req, res, next) {
     }
 })
 
+router.post("/move", async function (req, res, next) {
+    try {
+        res.json(await salesOrderServices.getDataMove(req.body))
+    } catch (error) {
+        res.json(error)
+    }
+})
+
 
 
 

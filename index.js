@@ -53,6 +53,7 @@ app.use(expressjwt({ secret: jwt_secret, algorithms: ['HS256'] })
                 '/address/options/get',
                 '/address/options/province/detail/get/:province',
                 '/branches/test',
+                '/sales-order/move',
                 /\/public/i,
                                                     
                
