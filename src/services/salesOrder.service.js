@@ -166,70 +166,85 @@ async function findByStatus(status, option) {
   return result;
 }
 
-//*================================================================
+//todo: search function================================================================
 async function searchOrdersByStatus(query) {
   try {
     let search_object = JSON.parse(query.search_object);
-    let page = query.page
-    let itemsPerPage = query.itemsPerPage;
+    let page = parseInt(query.page)
+    let itemsPerPage = parseInt(query.itemsPerPage)
     let options = JSON.parse(query.options)
-    let query_str = {}
-
-    //*query string conditions-----------------------------------------
+    let query_object_orders = {}
+    let query_object_branches = {}
+    //* ItemsPerPage กับ page จาก Frontend----------------------------
+    console.log("page ::", page, "itemsPerPage ::", itemsPerPage); //*
+    console.log("options :: ",options); //*
+    //*--------------------------------------------------------------
+    
+    //*query string conditions by order_status-----------------------------------------
+    if(options.order_status){
+      query_object_orders.order_status = options.order_status;
+    }
+    //*query string conditions @ orders-----------------------------------------
+    if(search_object.select_customer_group){
+      query_object_orders.cus_group_name = { [db.op.substring]: search_object.select_customer_group }
+    }
     if(search_object.so_number){
-      query_str.cus_po_id = search_object.so_number
+      query_object_orders.cus_po_id = { [db.op.substring]: search_object.so_number }
+    }
+    if(search_object.select_job_type){
+      query_object_orders.job_type = { [db.op.substring]: search_object.select_job_type }
     }
     if(search_object.order_code){
-      query_str.order_code = search_object.order_code
+      query_object_orders.order_code = { [db.op.substring]: search_object.order_code }
     }
     if(search_object.sale_id){
-      query_str.sale_id = search_object.sale_id
+      query_object_orders.sale_id = { [db.op.substring]: search_object.sale_id }
     }
     if(search_object.confirm_date){
-      console.log(search_object.confirm_date)
+      query_object_orders.confirm_date = { [db.op.between]: [search_object.confirm_date[0], search_object.confirm_date[1]] }
     }
-    console.log(search_object.confirm_date);
-    // const SLASH_DMY = 'DD/MM/YYYY';
-    // console.log('sysdate ::==',moment());
-    // console.log('sysdate ::==',moment().format(SLASH_DMY));
-    const SLASH_DMY = 'yyyy-MM-d';
-    
-    //*----------------------------------------------------------------
-
-
-
-
-
-    // if(options.query_page != 'has_truck'){
-    //   let result = await orders.findAll({
-    //     order: [["oid", "DESC"]],
-    //     where: {
-    //       [db.op.or]:{
-    //         cus_po_id : { [db.op.substring]:search_object.}
-    //       }
-    //     },
-    //     include: [
-    //       {
-    //         model: ASO_lists,
-    //         required: false,
-    //       },
-    //       {
-    //         model: WSO_lists,
-    //         required: false,
-    //       },
-    //       {
-    //         model: branches,
-    //         required: false,
-    //       },
-    //       {
-    //         model: orderTypes,
-    //         required: false,
-    //       },
-    //     ],
-    //   });
-    // }
-
-
+    if(search_object.dead_line_date){
+      query_object_orders.dead_line_date = { [db.op.between]: [search_object.dead_line_date[0], search_object.dead_line_date[1]] }
+    }
+    //*query string conditions @ branch-----------------------------------------
+    if(search_object.branch_name){
+      query_object_branches.branch_name = { [db.op.substring]: search_object.branch_name }
+    }
+    if(search_object.sub_district){
+      query_object_branches.sub_district = { [db.op.substring]: search_object.sub_district }
+    }
+    if(search_object.district){
+      query_object_branches.district_name = { [db.op.substring]: search_object.district }
+    }
+    if(search_object.province){
+      query_object_branches.province = { [db.op.substring]: search_object.province }
+    }
+    if(search_object.zip_code){
+      query_object_branches.zip_code = { [db.op.substring]: search_object.zip_code }
+    }
+    console.log('query_object_orders: ', query_object_orders)
+    console.log('query_object_branches: ', query_object_branches)
+    let result = await orders.findAndCountAll({
+      order: [["oid", "DESC"]],
+      where:{
+        [db.op.and]:query_object_orders
+      },
+      include:{
+        model:branches,
+        where:{
+          [db.op.and]:query_object_branches,
+        },
+        require:true
+      },
+      offset: itemsPerPage * (page - 1),
+      limit: itemsPerPage,
+    })
+    return {
+      status: "success",
+      data: result.rows,
+      count: result.count,
+    };
+    //todo:----------------------------------------------------------------
 
   } catch (err) {
     console.log(err).message
