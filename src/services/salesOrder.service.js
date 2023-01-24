@@ -994,7 +994,7 @@ async function addOrderToTruckOrder(body) {
       },
     }
   );
-  return {status:"success"};
+  return { status: "success" };
 }
 
 // async function searchOrders(value) {
@@ -1204,6 +1204,42 @@ async function getWSOForChecklists() {
   }
 
 }
+
+async function getDataMove(body) {
+  try {
+    console.log(body)
+    // let origin = await body.create({
+    //   cus_po_id: body.origin.oid,
+    //   ship_date: body.origin.date,
+    //   branch: {
+    //     address: body.origin.moreaddress_sender,
+    //     province: body.origin.province_sender,
+    //     district_name: body.origin.district_sender,
+    //     sub_district_name: body.origin.subdistrict_sender,
+    //     zip_code: body.origin.zipcode_sender,
+    //     cont_name: body.origin.name,
+    //     cont_tel: body.origin.tel,
+    //     email: body.origin.email
+    //   }
+    // })
+    // let destination = await body.create({
+    //   cus_po_id: body.destination.oid,
+    //   ship_date: body.destination.date,
+    //   branch: {
+    //     address: body.destination.moreaddress_reciever,
+    //     province: body.destination.province_reciever,
+    //     district_name: body.destination.district_reciever,
+    //     sub_district_name: body.destination.subdistrict_reciever,
+    //     zip_code: body.destination.zipcode_reciever,
+    //     cont_name: body.destination.name,
+    //     cont_tel: body.destination.tel,
+    //     email: body.destination.email
+    //   }
+    // })
+  } catch (error) {
+
+  }
+}
 // async function getWSOForChecklists(status) {
 //   try {
 //     console.log("aaa");
@@ -1286,4 +1322,5 @@ module.exports = {
   findByProblem,
   test,
   searchOrdersByStatus,
+  getDataMove
 };
