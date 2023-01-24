@@ -79,6 +79,17 @@ router.patch("/update", async function (req, res, next) {
         res.json(err)
     }
 });
+
+router.get("/wso-lists/get", async function (req, res, next) {
+    try {
+        res.json(await checkLists.getWSOLists())
+
+    }
+    catch (err) { 
+        res.json(err)
+    }
+});
+
 router.patch("/wso-goods/update", async function (req, res, next) {
     try {
         res.json(await checkLists.updateWSOGoodWareHouse(req.body))

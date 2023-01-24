@@ -318,8 +318,15 @@ async function calSumAllCheckList(wlid) {
             for (var good of goods) {
                 var wgid = good.wgid
                 var new_missing = good.wso_good_quantity
+                var sum_pick_in = 0
+                var sum_pick_out = 0
 
                 for (var check_list of good.check_lists) {
+                    //* รวมจำนวนขึ้น - ลง
+                    sum_pick_in += check_list.number
+                    sum_pick_out += check_list.out_number
+
+                    //* รวมจำนวนของค้าง
                     if(check_list.is_put_out == 0){
                         new_missing -= check_list.number
                     }
@@ -328,7 +335,10 @@ async function calSumAllCheckList(wlid) {
                     }
                 }
                 await WSO_goods.update({
-                    missing_quantity:new_missing
+                    missing_quantity:new_missing,
+                    sum_pick_in: sum_pick_in,
+                    sum_pick_out:sum_pick_out
+
                 },{
                     where: {wgid : wgid}
                 })
@@ -336,6 +346,7 @@ async function calSumAllCheckList(wlid) {
             }
             resolve(goods)
         } catch (error) {
+            console.log(error.message);
             reject(error)
         }
     })
@@ -490,6 +501,24 @@ async function updateWSOGoodWareHouse(goods) {
     }
 }
 
+async function getWSOLists() {
+    try {
+       let result = await WSO_lists.findAndCountAll({
+        include:{
+            model:WSO_goods,
+            where:{
+                missing_quantity: {[db.op.ne]: 0},
+                // sum_pick_out:{[db.op.eq]: 0}
+            }
+        }
+       })
+        return ({ status: 'success',data:result })
+    } catch (error) {
+        console.log(error);
+        return ({ stauts: 'error', data: error.message })
+    }
+}
+
 // async function findAllProvinces(){
 //     let result = await provinces.findAll();
 
@@ -520,6 +549,7 @@ module.exports = {
     updateCheckListsOutNumber,
     updateCheckLists,
     updateWSOGoodWareHouse,
-    calSumAllCheckList
+    calSumAllCheckList,
+    getWSOLists
 
 }
