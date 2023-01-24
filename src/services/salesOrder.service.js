@@ -130,17 +130,22 @@ async function findByProblem() {
 }
 
 async function findByStatus(status, option) {
+  let page = parseInt(option.page)
+  let itemsPerPage = parseInt(option.itemsPerPage)
+  let query_page = JSON.parse(option.options).query_page
+  
   var query_str = { order_status: status };
-  if (option == "no_confirm_date") {
+  if (query_page == "no_confirm_date") {
+    console.log(query_page);
     query_str.confirm_date = { [db.op.eq]: null };
   }
-  if (option == "confirm_date") {
+  if (query_page == "confirm_date") {
     query_str.confirm_date = { [db.op.ne]: null };
   }
   if (l_no != "0") {
     query_str.l_no = l_no;
   }
-  let result = await orders.findAll({
+  let result = await orders.findAndCountAll({
     order: [["oid", "DESC"]],
     where: query_str,
     include: [
@@ -161,9 +166,15 @@ async function findByStatus(status, option) {
         required: false,
       },
     ],
+    offset: itemsPerPage * (page - 1),
+    limit: itemsPerPage,
   });
   //
-  return result;
+  return {
+    status: "success",
+    data: result.rows,
+    count: result.count,
+  };
 }
 
 //todo: search function================================================================
@@ -179,7 +190,10 @@ async function searchOrdersByStatus(query) {
     console.log("page ::", page, "itemsPerPage ::", itemsPerPage); //*
     console.log("options :: ",options); //*
     //*--------------------------------------------------------------
-    
+    console.log(query_object_orders);
+    if (l_no != "0") {
+      query_object_orders.l_no = l_no;
+    }
     //*query string conditions by order_status-----------------------------------------
     if(options.order_status){
       query_object_orders.order_status = options.order_status;
@@ -200,12 +214,24 @@ async function searchOrdersByStatus(query) {
     if(search_object.sale_id){
       query_object_orders.sale_id = { [db.op.substring]: search_object.sale_id }
     }
-    if(search_object.confirm_date){
-      query_object_orders.confirm_date = { [db.op.between]: [search_object.confirm_date[0], search_object.confirm_date[1]] }
-    }
     if(search_object.dead_line_date){
       query_object_orders.dead_line_date = { [db.op.between]: [search_object.dead_line_date[0], search_object.dead_line_date[1]] }
     }
+
+    if (options.query_page == "no_confirm_date") {
+      query_object_orders.confirm_date = { [db.op.eq]: null };
+    }
+    else if (options.query_page == "confirm_date") {
+      if(search_object.confirm_date){
+        query_object_orders.confirm_date = { [db.op.between]: [search_object.confirm_date[0], search_object.confirm_date[1]] }
+      }
+    }
+    else{
+      if(search_object.confirm_date){
+        query_object_orders.confirm_date = { [db.op.between]: [search_object.confirm_date[0], search_object.confirm_date[1]] }
+      }
+    }
+
     //*query string conditions @ branch-----------------------------------------
     if(search_object.branch_name){
       query_object_branches.branch_name = { [db.op.substring]: search_object.branch_name }
