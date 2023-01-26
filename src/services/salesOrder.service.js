@@ -187,7 +187,7 @@ async function searchOrdersByStatus(query) {
     let query_object_orders = {}
     let query_object_branches = {}
     //* ItemsPerPage กับ page จาก Frontend----------------------------
-    console.log("page ::", page, "itemsPerPage ::", itemsPerPage); //*
+    // console.log("page ::", page, "itemsPerPage ::", itemsPerPage); //*
     console.log("options :: ",options); //*
     //*--------------------------------------------------------------
     console.log(query_object_orders);
@@ -219,15 +219,21 @@ async function searchOrdersByStatus(query) {
     }
 
     if (options.query_page == "no_confirm_date") {
+      console.log('no_confirm_date');
       query_object_orders.confirm_date = { [db.op.eq]: null };
     }
     else if (options.query_page == "confirm_date") {
       if(search_object.confirm_date){
+        console.log('confirm_date');
         query_object_orders.confirm_date = { [db.op.between]: [search_object.confirm_date[0], search_object.confirm_date[1]] }
+      }
+      else{
+        query_object_orders.confirm_date = { [db.op.ne]: null };
       }
     }
     else{
       if(search_object.confirm_date){
+        console.log('xxx');
         query_object_orders.confirm_date = { [db.op.between]: [search_object.confirm_date[0], search_object.confirm_date[1]] }
       }
     }
