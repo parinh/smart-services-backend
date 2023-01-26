@@ -130,17 +130,22 @@ async function findByProblem() {
 }
 
 async function findByStatus(status, option) {
+  let page = parseInt(option.page)
+  let itemsPerPage = parseInt(option.itemsPerPage)
+  let query_page = JSON.parse(option.options).query_page
+  
   var query_str = { order_status: status };
-  if (option == "no_confirm_date") {
+  if (query_page == "no_confirm_date") {
+    console.log(query_page);
     query_str.confirm_date = { [db.op.eq]: null };
   }
-  if (option == "confirm_date") {
+  if (query_page == "confirm_date") {
     query_str.confirm_date = { [db.op.ne]: null };
   }
   if (l_no != "0") {
     query_str.l_no = l_no;
   }
-  let result = await orders.findAll({
+  let result = await orders.findAndCountAll({
     order: [["oid", "DESC"]],
     where: query_str,
     include: [
@@ -161,10 +166,123 @@ async function findByStatus(status, option) {
         required: false,
       },
     ],
+    offset: itemsPerPage * (page - 1),
+    limit: itemsPerPage,
   });
   //
-  return result;
+  return {
+    status: "success",
+    data: result.rows,
+    count: result.count,
+  };
 }
+
+//todo: search function================================================================
+async function searchOrdersByStatus(query) {
+  try {
+    let search_object = JSON.parse(query.search_object);
+    let page = parseInt(query.page)
+    let itemsPerPage = parseInt(query.itemsPerPage)
+    let options = JSON.parse(query.options)
+    let query_object_orders = {}
+    let query_object_branches = {}
+    //* ItemsPerPage กับ page จาก Frontend----------------------------
+    // console.log("page ::", page, "itemsPerPage ::", itemsPerPage); //*
+    console.log("options :: ",options); //*
+    //*--------------------------------------------------------------
+    console.log(query_object_orders);
+    if (l_no != "0") {
+      query_object_orders.l_no = l_no;
+    }
+    //*query string conditions by order_status-----------------------------------------
+    if(options.order_status){
+      query_object_orders.order_status = options.order_status;
+    }
+    //*query string conditions @ orders-----------------------------------------
+    if(search_object.select_customer_group){
+      query_object_orders.cus_group_name = { [db.op.substring]: search_object.select_customer_group }
+    }
+    if(search_object.so_number){
+      query_object_orders.cus_po_id = { [db.op.substring]: search_object.so_number }
+    }
+    if(search_object.select_job_type){
+      query_object_orders.job_type = { [db.op.substring]: search_object.select_job_type }
+    }
+    if(search_object.order_code){
+      query_object_orders.order_code = { [db.op.substring]: search_object.order_code }
+    }
+    if(search_object.sale_id){
+      query_object_orders.sale_id = { [db.op.substring]: search_object.sale_id }
+    }
+    if(search_object.dead_line_date){
+      query_object_orders.dead_line_date = { [db.op.between]: [search_object.dead_line_date[0], search_object.dead_line_date[1]] }
+    }
+
+    if (options.query_page == "no_confirm_date") {
+      console.log('no_confirm_date');
+      query_object_orders.confirm_date = { [db.op.eq]: null };
+    }
+    else if (options.query_page == "confirm_date") {
+      if(search_object.confirm_date){
+        console.log('confirm_date');
+        query_object_orders.confirm_date = { [db.op.between]: [search_object.confirm_date[0], search_object.confirm_date[1]] }
+      }
+      else{
+        query_object_orders.confirm_date = { [db.op.ne]: null };
+      }
+    }
+    else{
+      if(search_object.confirm_date){
+        console.log('xxx');
+        query_object_orders.confirm_date = { [db.op.between]: [search_object.confirm_date[0], search_object.confirm_date[1]] }
+      }
+    }
+
+    //*query string conditions @ branch-----------------------------------------
+    if(search_object.branch_name){
+      query_object_branches.branch_name = { [db.op.substring]: search_object.branch_name }
+    }
+    if(search_object.sub_district){
+      query_object_branches.sub_district = { [db.op.substring]: search_object.sub_district }
+    }
+    if(search_object.district){
+      query_object_branches.district_name = { [db.op.substring]: search_object.district }
+    }
+    if(search_object.province){
+      query_object_branches.province = { [db.op.substring]: search_object.province }
+    }
+    if(search_object.zip_code){
+      query_object_branches.zip_code = { [db.op.substring]: search_object.zip_code }
+    }
+    console.log('query_object_orders: ', query_object_orders)
+    console.log('query_object_branches: ', query_object_branches)
+    let result = await orders.findAndCountAll({
+      order: [["oid", "DESC"]],
+      where:{
+        [db.op.and]:query_object_orders
+      },
+      include:{
+        model:branches,
+        where:{
+          [db.op.and]:query_object_branches,
+        },
+        require:true
+      },
+      offset: itemsPerPage * (page - 1),
+      limit: itemsPerPage,
+    })
+    return {
+      status: "success",
+      data: result.rows,
+      count: result.count,
+    };
+    //todo:----------------------------------------------------------------
+
+  } catch (err) {
+    console.log(err).message
+  }
+}
+//*================================================================
 
 async function findByHasTruckOrder(query) {
   try {
@@ -882,7 +1000,7 @@ async function addOrderToTruckOrder(body) {
       },
     }
   );
-  return {status:"success"};
+  return { status: "success" };
 }
 
 // async function searchOrders(value) {
@@ -1092,6 +1210,42 @@ async function getWSOForChecklists() {
   }
 
 }
+
+async function getDataMove(body) {
+  try {
+    console.log(body)
+    // let origin = await body.create({
+    //   cus_po_id: body.origin.oid,
+    //   ship_date: body.origin.date,
+    //   branch: {
+    //     address: body.origin.moreaddress_sender,
+    //     province: body.origin.province_sender,
+    //     district_name: body.origin.district_sender,
+    //     sub_district_name: body.origin.subdistrict_sender,
+    //     zip_code: body.origin.zipcode_sender,
+    //     cont_name: body.origin.name,
+    //     cont_tel: body.origin.tel,
+    //     email: body.origin.email
+    //   }
+    // })
+    // let destination = await body.create({
+    //   cus_po_id: body.destination.oid,
+    //   ship_date: body.destination.date,
+    //   branch: {
+    //     address: body.destination.moreaddress_reciever,
+    //     province: body.destination.province_reciever,
+    //     district_name: body.destination.district_reciever,
+    //     sub_district_name: body.destination.subdistrict_reciever,
+    //     zip_code: body.destination.zipcode_reciever,
+    //     cont_name: body.destination.name,
+    //     cont_tel: body.destination.tel,
+    //     email: body.destination.email
+    //   }
+    // })
+  } catch (error) {
+
+  }
+}
 // async function getWSOForChecklists(status) {
 //   try {
 //     console.log("aaa");
@@ -1173,4 +1327,6 @@ module.exports = {
   updateShowCost,
   findByProblem,
   test,
+  searchOrdersByStatus,
+  getDataMove
 };
