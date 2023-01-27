@@ -71,7 +71,7 @@ router.get("/goods-status/get", async function (req, res, next) {
     }
 });
 
-router.patch("/update", async function (req, res, next) {
+router.put("/update", async function (req, res, next) {
     try {
         res.json(await checkLists.updateCheckLists(req.body))
     }
@@ -162,6 +162,15 @@ router.patch("/status/update", async function (req, res, next) {
 router.delete("/delete", async function (req, res, next) {
     try {
         res.json(await checkLists.destroyCheckList(req.query))
+    }
+    catch (err) { 
+        res.json(err)
+    }
+});
+
+router.patch("/update/is_confirm", async function (req, res, next) {
+    try {
+        res.json(await checkLists.updateIsConfirm(req.body))
     }
     catch (err) { 
         res.json(err)

@@ -158,18 +158,19 @@ async function getGoodsStatus() {
 
 async function updateCheckLists(goods) {
     try {
-        for (let good of goods) {
-            await check_lists.update({
-                number: good.number,
-                detail: good.detail,
-                out_number: good.out_number,
-                put_out_time: good.put_out_time
-            }
-                , {
-                    where: { clid: good.clid }
-                })
-        }
-        return { status: "success" }
+        console.log(goods);
+        // for (let good of goods) {
+        //     await check_lists.update({
+        //         number: good.number,
+        //         detail: good.detail,
+        //         out_number: good.out_number,
+        //         put_out_time: good.put_out_time
+        //     }
+        //         , {
+        //             where: { clid: good.clid }
+        //         })
+        // }
+        // return { status: "success" }
 
     } catch (error) {
 
@@ -187,7 +188,7 @@ async function updateCheckListsOutNumber(body) {
             await check_lists.update({
                 out_number: good.out_number,
                 put_out_time: now,
-                problems : good.problems,
+                problems: good.problems,
                 is_put_out: 1
             }
                 , {
@@ -327,20 +328,20 @@ async function calSumAllCheckList(wlid) {
                     sum_pick_out += check_list.out_number
 
                     //* รวมจำนวนของค้าง
-                    if(check_list.is_put_out == 0){
+                    if (check_list.is_put_out == 0) {
                         new_missing -= check_list.number
                     }
-                    else{
+                    else {
                         new_missing -= check_list.out_number
                     }
                 }
                 await WSO_goods.update({
-                    missing_quantity:new_missing,
+                    missing_quantity: new_missing,
                     sum_pick_in: sum_pick_in,
-                    sum_pick_out:sum_pick_out
+                    sum_pick_out: sum_pick_out
 
-                },{
-                    where: {wgid : wgid}
+                }, {
+                    where: { wgid: wgid }
                 })
                 // console.log(new_missing);
             }
@@ -412,13 +413,13 @@ async function findCheckListForPickOutForm(query) {
         let toid = query.toid;
         console.log(toid);
         let result = await WSO_lists.findOne({
-            where: { wlid: wlid,},
+            where: { wlid: wlid, },
             include: [{
                 model: WSO_goods,
                 include: [{
                     where: {
                         is_put_out: 0,
-                        toid:toid
+                        toid: toid
                     },
                     model: check_lists
                 }]
@@ -448,8 +449,8 @@ async function destroyCheckList(query) {
         return { status: 'success' }
 
     } catch (error) {
-
-        return { status: 'error' ,data :error.message }
+        console.log(error.message);
+        return { status: 'error', data: error.message }
     }
 }
 
@@ -503,21 +504,27 @@ async function updateWSOGoodWareHouse(goods) {
 
 async function getWSOLists() {
     try {
-       let result = await WSO_lists.findAndCountAll({
-        include:{
-            model:WSO_goods,
-            where:{
-                missing_quantity: {[db.op.ne]: 0},
-                // sum_pick_out:{[db.op.eq]: 0}
+        let result = await WSO_lists.findAndCountAll({
+            include: {
+                model: WSO_goods,
+                where: {
+                    missing_quantity: { [db.op.ne]: 0 },
+                    // sum_pick_out:{[db.op.eq]: 0}
+                }
             }
-        }
-       })
-        return ({ status: 'success',data:result })
+        })
+        return ({ status: 'success', data: result })
     } catch (error) {
         console.log(error);
         return ({ stauts: 'error', data: error.message })
     }
 }
+
+async function updateIsConfirm(body) {
+    console.log('status_target,toid: ', body);
+
+}
+
 
 // async function findAllProvinces(){
 //     let result = await provinces.findAll();
@@ -550,6 +557,7 @@ module.exports = {
     updateCheckLists,
     updateWSOGoodWareHouse,
     calSumAllCheckList,
-    getWSOLists
+    getWSOLists,
+    updateIsConfirm
 
 }

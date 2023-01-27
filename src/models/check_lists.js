@@ -16,7 +16,9 @@ module.exports = (sequelize, Sequelize) => {
         created_at:{type: Sequelize.DATE, field: 'created_at'},
         put_out_time:{type: Sequelize.DATE,allowNull: true, field: 'put_out_time'},
         warehouse_id: { type: Sequelize.INTEGER(11), defaultValue: 1, field: 'warehouse_id' },
-        problems:{type: Sequelize.JSON,allowNull: true, field: 'problems'}
+        problems:{type: Sequelize.JSON,allowNull: true, field: 'problems'},
+        is_confirm:{type: Sequelize.TINYINT(1),defaultValue: 0, field: 'is_confirm' },
+
 
       },
       {
