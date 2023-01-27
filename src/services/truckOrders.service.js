@@ -1,5 +1,6 @@
 const db = require('../configs/sql.config');
 const moment = require('moment');
+const jwt_service = require('../services/jwt.service')
 const { orders_cost, truck_orders, orders, member_options, branches, vehicle_types, warehouses, WSO_lists, WSO_goods, cost_mapping, cost_area_type, cost_k_type } = db
 db.sequelize.sync();
 let l_no = "0"
@@ -24,13 +25,15 @@ let l_no = "0"
 //     return (result)
 // }
 
-function setLNo(_l_no) {
-    l_no = _l_no ?? '0'
-
+function setLNo(headers) {
+    let split_bearer = headers.authorization.split(' ')[1]
+    l_no = jwt_service.decodeToken(split_bearer).data.l_no ?? l_no
 }
 
 async function findAll(status = []) {
     try {
+        let return_lno = l_no
+        console.log('l_no : ',return_lno);
         let where_str = {}
         if (status) {
             where_str.to_status = {
@@ -67,7 +70,7 @@ async function findAll(status = []) {
             ]
         });
 
-        return { status: 'success', data: result };
+        return { status: 'success', data: result ,l_no:return_lno };
     }
     catch (err) {
         return { status: 'error', message: err.message }
