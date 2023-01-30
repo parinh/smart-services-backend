@@ -169,7 +169,7 @@ router.get("/search", async function (req, res, next) {
     }
     catch (err) { 
         res.json(err)
-        console.log(err.message)
+        
     }
 })
 

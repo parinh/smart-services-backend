@@ -78,7 +78,7 @@ async function findAll(status = []) {
 
 async function findById(id) {
     try {
-        console.log(id);
+        
         let result = await truck_orders.findOne({
             where: { toid: id },
             include: [
@@ -226,7 +226,7 @@ async function create(body) {
 
     }
     catch (err) {
-        console.log(err);
+        
         return { status: "error", data: err.message }
     }
 }
@@ -589,7 +589,7 @@ async function searchByTruckCode(params) {
             data: result
         }
     } catch (err) {
-        console.log(err)
+        
         return {
             status: 'error',
             data: err.message

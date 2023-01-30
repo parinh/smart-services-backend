@@ -42,7 +42,6 @@ var fs = require('fs');
 // const upload = multer({ storage: storage })
 // const upload = multer({ dest: './public/files/' })
 router.use(function (req, res, next) {
-    console.log(req.headers);
     salesOrderServices.setLNo(req.headers.l_no,req.headers.au)
     next()
 })
