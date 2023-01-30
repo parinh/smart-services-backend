@@ -2,7 +2,7 @@ require("dotenv").config();
 const utf8 = require("utf8");
 const xlsxFile = require("read-excel-file/node");
 const moment = require("moment");
-
+const jwt_service = require('../services/jwt.service')
 const fs = require("fs");
 const path = require("path");
 
@@ -38,8 +38,9 @@ let l_no = "0";
 //     }
 
 // }
-function setLNo(_l_no) {
-  l_no = _l_no ?? "0";
+function setLNo(headers) {
+  let split_bearer = headers.authorization.split(' ')[1]
+  l_no = jwt_service.decodeToken(split_bearer).data.l_no ?? l_no
 }
 
 async function test() {
