@@ -42,44 +42,20 @@ async function updateOneBranches(body) {
 
 async function test() {
     try {
-        console.log("test");
-        let toids = await orders_cost.findAll({
-            attributes: ['ocid','toid', 'oid'],
-            where: {
-                ship_date: null
-            }
-        })
-        console.log(toids);
-
-        for (var ele of toids) {
-            var result = await truck_orders.findOne({
-                attributes: ['start_date'],
-                where: { toid: ele.toid }
+        //
+        let costs = await orders_cost.findAll({
+        }) 
+        for (let cost of costs) {
+            console.log(cost.ocid);
+            let new_sum = cost.cost_k + cost.day_cost + cost.distance_cost + cost.drop_cost + cost.fuel_cost + cost.chance_cost + cost.reimburse_day_cost + cost.stuck_cost + cost.back_cost + cost.over_distance_cost + cost.extra + cost.sub_cost
+            let update_result = await orders_cost.update({
+                sum:new_sum
+            },{
+                where: {ocid:cost.ocid}
             })
-            // console.log(result);
-            await orders_cost.update({
-                ship_date: result.start_date
-            }, {
-                where: { toid: ele.toid, oid:ele.oid}
-            })
-            // return result
+            console.log("result",update_result);
         }
-
-
-
-        // console.log(toids);
-        // for (var order of _orders){
-        //     console.log(order.oid);
-        //     await orders_cost.update({
-        //         confirm_date: order.confirm_date
-        //     },{
-        //         where:{oid:order.oid}
-        //     })
-        // }
-
-
-
-        return toids
+        return "success"
     } catch (error) {
         console.log(error.message);
     }
