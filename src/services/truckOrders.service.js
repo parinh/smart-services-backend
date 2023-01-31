@@ -85,7 +85,7 @@ async function searchTruckOrdersBySearchObjects(query) {
     let page = parseInt(query.page)
     let itemsPerPage = parseInt(query.itemsPerPage)
     let options = JSON.parse(query.options)
-    let query_object_truck_orders = {}
+    let query_object_truck_orders = []
     let query_object_orders = {}
     let query_object_member_options = {}
     let query_object_branches = {}
@@ -97,61 +97,70 @@ async function searchTruckOrdersBySearchObjects(query) {
     console.log("itemsPerPage : ",itemsPerPage);
     console.log("options : ",options);
     try {
+        if(search_object.truck_code){
+            query_object_truck_orders.push({truck_code : { [db.op.substring]: search_object.truck_code }})
+        }
+        if(search_object.emps_length){
+            query_object_truck_orders.push(db.sequelize.where(db.sequelize.fn('JSON_LENGTH', db.sequelize.col('emps')),search_object.emps_length))
+        }
+        console.log(query_object_truck_orders);
         let result = await truck_orders.findAll({
-            where: db.sequelize.where(db.sequelize.fn('JSON_LENGTH', db.sequelize.col('emps')),search_object.emps_length)
+            where:{
+                [db.op.and]:query_object_truck_orders
+            }
+            // where: db.sequelize.where(db.sequelize.fn('JSON_LENGTH', db.sequelize.col('emps')),search_object.emps_length)
         })
-        console.log(result);
         return result
     } catch (error) {
         console.log(error.message);
     }
 
-    try {
-    //*query_object_truck_orders =================================
-        if(search_object.truck_code){
-            query_object_truck_orders.truck_code = { [db.op.substring]: search_object.truck_code }
-        }
-        // if(search_object.emps_length){
-        //     query_object_truck_orders.truck_code = 
-        // }
-        if (options.to_status) {
-            query_object_truck_orders.to_status = {[db.op.in]: options.to_status}
-        }
-        if (l_no != "0") {
-            where_str.l_no = l_no
-        }
-        let result = await truck_orders.findAll({
-            where: where_str,
-            include: [
-                {
-                    model: member_options,
-                    required: false,
-                    include: [
-                        {
-                            model: vehicle_types,
-                            required: false,
-                        }
-                    ]
-                },
-                {
-                    model: orders,
-                    required: false,
-                    include: [
-                        {
-                            model: branches,
-                            required: false
-                        }
-                    ]
-                },
+    // try {
+    // //*query_object_truck_orders =================================
+    //     if(search_object.truck_code){
+    //         query_object_truck_orders.truck_code = { [db.op.substring]: search_object.truck_code }
+    //     }
+    //     if(search_object.emps_length){
+    //         query_object_truck_orders.truck_code = 
+    //     }
+    //     if (options.to_status) {
+    //         query_object_truck_orders.to_status = {[db.op.in]: options.to_status}
+    //     }
+    //     if (l_no != "0") {
+    //         where_str.l_no = l_no
+    //     }
+    //     let result = await truck_orders.findAll({
+    //         where: where_str,
+    //         include: [
+    //             {
+    //                 model: member_options,
+    //                 required: false,
+    //                 include: [
+    //                     {
+    //                         model: vehicle_types,
+    //                         required: false,
+    //                     }
+    //                 ]
+    //             },
+    //             {
+    //                 model: orders,
+    //                 required: false,
+    //                 include: [
+    //                     {
+    //                         model: branches,
+    //                         required: false
+    //                     }
+    //                 ]
+    //             },
 
-            ]
-        });
+    //         ]
+    //     });
 
-        return { status: 'success', data: result ,l_no:return_lno };
-    }
-    catch (err) {
-        return { status: 'error', message: err.message }
-    }
+    //     return { status: 'success', data: result ,l_no:return_lno };
+    // }
+    // catch (err) {
+    //     return { status: 'error', message: err.message }
+    // }
 }
 //*todo : search ----------------------------------------------------------------
 
