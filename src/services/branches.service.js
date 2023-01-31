@@ -44,7 +44,8 @@ async function test() {
     try {
         //
         let costs = await orders_cost.findAll({
-        }) 
+        })
+        console.log(costs.length); 
         for (let cost of costs) {
             console.log(cost.ocid);
             let new_sum = cost.cost_k + cost.day_cost + cost.distance_cost + cost.drop_cost + cost.fuel_cost + cost.chance_cost + cost.reimburse_day_cost + cost.stuck_cost + cost.back_cost + cost.over_distance_cost + cost.extra + cost.sub_cost
@@ -55,6 +56,7 @@ async function test() {
             })
             console.log("result",update_result);
         }
+        console.log(costs.length); 
         return "success"
     } catch (error) {
         console.log(error.message);
