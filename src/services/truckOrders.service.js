@@ -490,12 +490,19 @@ async function removeOrder(toid, oid) {
 
 async function getDaily(date) {
     try {
+        console.log(date);
         var result = await truck_orders.findAll({
             where: {
+                // drops:{[db.op.notLike]:[]},
                 start_date: {
                     [db.op.eq]: date
-                }
+                },
+                [db.op.or]:[
+                    { drops:{[db.op.notLike]:[]} },
+                    { drops:{[db.op.notLike]:null} },
+                ]
             },
+            // where: [db.sequelize.where(db.sequelize.fn('JSON_LENGTH', db.sequelize.col('drops')),0)],
             include: [
                 {
                     model: member_options,
@@ -507,7 +514,7 @@ async function getDaily(date) {
 
             ]
         })
-
+        console.log(result.length);
         return { status: 'success', data: result }
     }
     catch (err) {
