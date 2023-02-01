@@ -162,8 +162,8 @@ async function updateCheckLists(goods) {
                 number: good.number,
                 // detail: good.detail,
                 out_number: good.out_number,
-                warehouse_id:good.warehouse_id,
-                problems:good.problems
+                warehouse_id: good.warehouse_id,
+                problems: good.problems
             }
                 , {
                     where: { clid: good.clid }
@@ -291,7 +291,7 @@ async function createChecklists(body) {
 
     }
     catch (err) {
-        
+
         return { status: 'error', data: err.message }
     }
 }
@@ -346,7 +346,7 @@ async function calSumAllCheckList(wlid) {
             }
             resolve(goods)
         } catch (error) {
-            
+
             reject(error)
         }
     })
@@ -410,7 +410,7 @@ async function findCheckListForPickOutForm(query) {
     try {
         let wlid = query.wlid;
         let toid = query.toid;
-        
+
         let result = await WSO_lists.findOne({
             where: { wlid: wlid, },
             include: [{
@@ -427,7 +427,7 @@ async function findCheckListForPickOutForm(query) {
         })
         return { status: 'success', data: result }
     } catch (error) {
-        
+
         return { status: 'error' }
     }
 }
@@ -448,30 +448,61 @@ async function destroyCheckList(query) {
         return { status: 'success' }
 
     } catch (error) {
-        
+
         return { status: 'error', data: error.message }
     }
 }
 
-function addProblems(toid,times){
-    return new Promise(async(resolve, reject) => {
+function addProblems(good,wlid) {
+    return new Promise(async (resolve, reject) => {
         try {
-            let problems = await problem_status.findAll({})
-            // console.log('problems: ', problems);
-            let lists = await check_lists.findAll({
-                where:{toid:toid,times:times}
+            let wso = await WSO_lists.findOne({
+                where:{wlid:wlid},
+                include: {
+                    attributes:['wgid'],
+                    model: WSO_goods,
+                    require:true,
+                }
             })
-            let list_problems = []
-            for (const list of lists) {
-                list.problems.forEach(problem => {
-                    
-                });
+
+            if(wso){
+                let problems = await problem_status.findAll({})
+                let goods_ids = []
+                for (const good of wso.WSO_goods) { //* เอา id good มาทุกตัว
+                    goods_ids.push(good.wgid)
+                }
+                let lists = await check_lists.findAll({
+                    where: { wgid:{[db.op.in] : goods_ids}, is_confirm: 1 }
+                })
+                // console.log(lists);
+                let problems_types = []
+                for (const list of lists) { //* เอา problem ทุกตัวมาเก็บใน array
+                    if (list.problems) {
+                        for (const problem of list.problems) {
+                            if (!problems_types.includes(problem.problem_id)) {
+                                problems_types.push(problem.problem_id)
+                            }
+                        }
+                    }
+                }
+                let types = []
+                problems_types.forEach(problem_id => { //* เอาปหทุกตัวมาดูว่าเป็น type ไหกนบ่าง
+                    let arr = problems[problem_id - 1].type
+                    types.push(...arr)
+                })
+                types = [...new Set(types)]; //* เอาตัวซ้ำออก
+                console.log(types);
+
+                await WSO_lists.update({
+                    problem_types : types
+                },{
+                    where:{wlid:wlid}
+                })
+                resolve()
+
             }
-            
-            
 
             // console.log(result);
-            resolve()
         } catch (error) {
             reject(error)
         }
@@ -480,28 +511,28 @@ function addProblems(toid,times){
 
 async function updateIsConfirm(body) {
     try {
-        
+
         const toid = body.toid
         const times = body.times
         const status_target = body.status_target
+        const good_ids = body.good_ids
+        const wlid = body.wlid
 
         await check_lists.update({
             is_confirm: status_target
         }, {
             where: {
                 toid: toid,
-                times:times
+                times: times
             }
         })
 
-        if(status_target == 1){
-            await addProblems(toid,times)
-        }
+        await addProblems(good_ids,wlid)
         console.log("print");
         return { status: 'success' }
 
     } catch (error) {
-
+        console.log(error);
         return { status: 'error' }
     }
 }
@@ -528,6 +559,7 @@ async function updateWSOGoodWareHouse(goods) {
 async function getWSOLists() {
     try {
         let result = await WSO_lists.findAndCountAll({
+            // where:{problem_types: {[db.op.ne]: null }},
             include: {
                 model: WSO_goods,
                 where: {
@@ -538,7 +570,7 @@ async function getWSOLists() {
         })
         return ({ status: 'success', data: result })
     } catch (error) {
-        
+console.log(error);
         return ({ stauts: 'error', data: error.message })
     }
 }

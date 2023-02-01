@@ -14,7 +14,7 @@ module.exports = ( sequelize , Sequelize ) => {
           job_name: { type: Sequelize.STRING(255), allowNull: true, field: 'job_name' },
           dep_name: { type: Sequelize.STRING(50), allowNullL:true,field: 'dep_name' },
           wso_file_path: { type: Sequelize.STRING(255), allowNull: true, field: 'wso_file_path' },
-
+          problem_types: { type: Sequelize.JSON, allowNull: true,defaultValue: [], field: 'problem_types' },
       },
       {
           tableName: 'WSO_lists' 
