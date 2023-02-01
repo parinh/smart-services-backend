@@ -92,25 +92,101 @@ async function searchTruckOrdersBySearchObjects(query) {
     let query_object_vehicle_types = {}
     let return_lno = l_no
     
-    console.log("search_object : ",search_object);
-    console.log("page : ",page);
-    console.log("itemsPerPage : ",itemsPerPage);
-    console.log("options : ",options);
+    // console.log("search_object : ",search_object);
+    // console.log("page : ",page);
+    // console.log("itemsPerPage : ",itemsPerPage);
+    // console.log("options : ",options);
+    // console.log("l_no : ",l_no);
     try {
+        // if (options.to_status) {
+        //     query_object_truck_orders.push( {to_status : {[db.op.in]: options.to_status}} )
+        // }        
+        //*query_object_truck_orders =================================================================================================================
+        if (l_no != "0") {
+            query_object_truck_orders.push({ l_no : l_no})
+        }
         if(search_object.truck_code){
             query_object_truck_orders.push({truck_code : { [db.op.substring]: search_object.truck_code }})
         }
         if(search_object.emps_length){
             query_object_truck_orders.push(db.sequelize.where(db.sequelize.fn('JSON_LENGTH', db.sequelize.col('emps')),search_object.emps_length))
         }
-        console.log(query_object_truck_orders);
-        let result = await truck_orders.findAll({
+        if(search_object.start_date){
+            query_object_truck_orders.push({start_date : { [db.op.between]: [search_object.start_date[0], search_object.start_date[1]] }})
+        }
+        //*query_object_orders =================================================================================================================
+        if(search_object.order_code){
+            query_object_orders.order_code = { [db.op.substring]: search_object.truck_code }
+        }
+        if(search_object.cus_po_id){
+            query_object_orders.cus_po_id = { [db.op.substring]: search_object.cus_po_id }
+        }
+        if(search_object.job_type){
+            query_object_orders.job_type = { [db.op.substring]: search_object.job_type }
+        }
+        //*query_object_member_options =================================================================================================================
+        if(search_object.select_member){
+            query_object_member_options.name = { [db.op.substring]: search_object.select_member }
+        }
+        if(search_object.select_plate_number){
+            query_object_member_options.plate_number = { [db.op.substring]: search_object.select_plate_number }
+        }
+        //*query_object_branches =================================================================================================================
+        if(search_object.branch_name){
+            query_object_branches.branch_name = { [db.op.substring]: search_object.branch_name }
+        }
+        //*query_object_vehicle_types =================================================================================================================
+        if(search_object.vehicle_type){
+            query_object_vehicle_types.vehicle = { [db.op.substring]: search_object.vehicle_type }
+        }
+
+        console.log('truck order : ',query_object_truck_orders);
+        console.log('order : ',query_object_orders);
+        console.log('member_option : ',query_object_member_options);
+        console.log('branch : ',query_object_branches);
+        console.log('vehicle : ',query_object_vehicle_types);
+        let result = await truck_orders.findAndCountAll({
             where:{
                 [db.op.and]:query_object_truck_orders
-            }
+            },
+            include:[
+                {
+                    model:orders,
+                    where:{
+                      [db.op.and]:query_object_orders,
+                    },
+                    require:false,
+                    include:{
+                        model:branches,
+                        where:{
+                            [db.op.and]:query_object_branches,
+                        },
+                        require:false
+                    }
+                },
+                {
+                    model:member_options,
+                    where:{
+                      [db.op.and]:query_object_member_options,
+                    },
+                    require:false,
+                    include:{
+                        model:vehicle_types,
+                        where:{
+                            [db.op.and]:query_object_vehicle_types,
+                        },
+                        require:false
+                    }
+                }
+            ]
             // where: db.sequelize.where(db.sequelize.fn('JSON_LENGTH', db.sequelize.col('emps')),search_object.emps_length)
         })
-        return result
+        // console.log(result);
+        return {
+            status: "success",
+            data: result.rows,
+            count: result.count,
+          };
     } catch (error) {
         console.log(error.message);
     }
