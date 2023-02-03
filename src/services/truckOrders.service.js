@@ -1,7 +1,7 @@
 const db = require('../configs/sql.config');
 const moment = require('moment');
-const jwt_service = require('../services/jwt.service')
-const { orders_cost, truck_orders, orders, member_options, branches, vehicle_types, warehouses, WSO_lists, WSO_goods, cost_mapping, cost_area_type, cost_k_type } = db
+const jwt_service = require('../services/jwt.service');
+const { orders_cost, truck_orders, orders, member_options, branches, vehicle_types, warehouses, WSO_lists, WSO_goods, cost_mapping, cost_area_type, cost_k_type,l_no_details } = db
 db.sequelize.sync();
 let l_no = "0"
 
@@ -81,7 +81,6 @@ async function findAll(status = []) {
 
 async function findById(id) {
     try {
-        console.log(id);
         let result = await truck_orders.findOne({
             where: { toid: id },
             include: [
@@ -126,6 +125,10 @@ async function findById(id) {
                             required: false
                         }
                     ]
+                },
+                {
+                    model:l_no_details,
+                    required: false,
                 }
 
             ]
@@ -133,6 +136,7 @@ async function findById(id) {
         return (result)
     }
     catch (err) {
+        console.log(err);
         return ({ status: 'error', data: err.message })
     }
 
