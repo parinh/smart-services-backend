@@ -42,44 +42,21 @@ async function updateOneBranches(body) {
 
 async function test() {
     try {
-        console.log("test");
-        let toids = await orders_cost.findAll({
-            attributes: ['ocid','toid', 'oid'],
-            where: {
-                ship_date: null
+        let _orders = await orders.findAll()
+        for(let order of _orders){
+            let remark = order.remark
+
+            if(remark){
+                await orders_cost.update({
+                    remark : remark,
+                },{
+                    where:{oid:order.oid}
+                })
+                console.log(order.oid + " : updated");
             }
-        })
-        console.log(toids);
-
-        for (var ele of toids) {
-            var result = await truck_orders.findOne({
-                attributes: ['start_date'],
-                where: { toid: ele.toid }
-            })
-            // console.log(result);
-            await orders_cost.update({
-                ship_date: result.start_date
-            }, {
-                where: { toid: ele.toid, oid:ele.oid}
-            })
-            // return result
+            
         }
-
-
-
-        // console.log(toids);
-        // for (var order of _orders){
-        //     console.log(order.oid);
-        //     await orders_cost.update({
-        //         confirm_date: order.confirm_date
-        //     },{
-        //         where:{oid:order.oid}
-        //     })
-        // }
-
-
-
-        return toids
+        return "success"
     } catch (error) {
         console.log(error.message);
     }

@@ -11,7 +11,7 @@ async function findAllOrderWithWSO() {
                     [db.op.not]: null
                 }
             },
-            attributes: ['wlid', 'cus_po_id', 'dead_line_date'],
+            attributes: ['wlid', 'cus_po_id', 'dead_line_date','so_number'],
 
             include: [
                 {
