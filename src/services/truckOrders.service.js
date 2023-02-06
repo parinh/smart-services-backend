@@ -1,7 +1,7 @@
 const db = require('../configs/sql.config');
 const moment = require('moment');
-const jwt_service = require('../services/jwt.service')
-const { orders_cost, truck_orders, orders, member_options, branches, vehicle_types, warehouses, WSO_lists, WSO_goods, cost_mapping, cost_area_type, cost_k_type } = db
+const jwt_service = require('../services/jwt.service');
+const { orders_cost, truck_orders, orders, member_options, branches, vehicle_types, warehouses, WSO_lists, WSO_goods, cost_mapping, cost_area_type, cost_k_type,l_no_details } = db
 db.sequelize.sync();
 let l_no = "0"
 
@@ -243,7 +243,6 @@ async function searchTruckOrdersBySearchObjects(query) {
 
 async function findById(id) {
     try {
-        console.log(id);
         let result = await truck_orders.findOne({
             where: { toid: id },
             include: [
@@ -288,6 +287,10 @@ async function findById(id) {
                             required: false
                         }
                     ]
+                },
+                {
+                    model:l_no_details,
+                    required: false,
                 }
 
             ]
@@ -295,6 +298,7 @@ async function findById(id) {
         return (result)
     }
     catch (err) {
+        console.log(err);
         return ({ status: 'error', data: err.message })
     }
 
@@ -353,7 +357,7 @@ async function create(body) {
         let oids = body.oids
         let l_no = body.l_no
         let truck_code = await genTruckCode()
-
+        console.log(truck_code);
         let has_truck_oid = await orders.findAll({
             attributes: ['order_code'],
             where: {
@@ -383,8 +387,11 @@ async function create(body) {
                 }
                 )
             }
-
-            return { status: 'success' }
+            console.log(result);
+            return { 
+                status: 'success',
+                toid : result.toid
+             }
         }
 
 
@@ -652,12 +659,19 @@ async function removeOrder(toid, oid) {
 
 async function getDaily(date) {
     try {
+        console.log(date);
         var result = await truck_orders.findAll({
             where: {
+                // drops:{[db.op.notLike]:[]},
                 start_date: {
                     [db.op.eq]: date
-                }
+                },
+                [db.op.or]:[
+                    { drops:{[db.op.notLike]:[]} },
+                    { drops:{[db.op.notLike]:null} },
+                ]
             },
+            // where: [db.sequelize.where(db.sequelize.fn('JSON_LENGTH', db.sequelize.col('drops')),0)],
             include: [
                 {
                     model: member_options,
@@ -669,7 +683,7 @@ async function getDaily(date) {
 
             ]
         })
-
+        console.log(result.length);
         return { status: 'success', data: result }
     }
     catch (err) {

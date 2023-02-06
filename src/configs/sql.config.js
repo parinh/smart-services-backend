@@ -59,6 +59,7 @@ const sequelize = new Sequelize(
   db.orders_cost = require("../models/orders_cost")(sequelize ,Sequelize)
   db.fuel_percent = require("../models/fuelPercent")(sequelize ,Sequelize)
   db.user_roles = require("../models/userRoles")(sequelize ,Sequelize)
+  db.l_no_details = require("../models/l_no_details")(sequelize ,Sequelize)
 
   db.WSO_lists.hasMany(db.WSO_goods, { foreignKey: 'wlid'});
   db.WSO_goods.belongsTo(db.WSO_lists, { foreignKey: 'wlid'});
@@ -87,6 +88,9 @@ const sequelize = new Sequelize(
 
   db.truck_orders.hasMany(db.orders,{foreignKey:'toid'})
   db.orders.belongsTo(db.truck_orders,{foreignKey:'toid', targetKey:'toid'})
+
+  db.l_no_details.hasMany(db.truck_orders,{foreignKey:'l_no'})
+  db.truck_orders.belongsTo(db.l_no_details,{foreignKey:'l_no', targetKey:'l_no'})
 
   db.warehouses.hasMany(db.truck_orders,{foreignKey:'warehouse_id'})
   db.truck_orders.belongsTo(db.warehouses,{foreignKey:'warehouse_id', targetKey:'warehouse_id'})
