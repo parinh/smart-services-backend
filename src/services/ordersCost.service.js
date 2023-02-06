@@ -52,7 +52,8 @@ async function AddOrdersCost(body) {
                         over_distance_cost:order.cost_detail.over_distance_cost,
                         extra: order.cost_detail.extra,
                         sub_cost:order.cost_detail.sub_cost,
-                        is_show_cost: order.is_show_cost
+                        is_show_cost: order.is_show_cost,
+                        remark: order.remark
     
                     }
                 })
@@ -89,7 +90,8 @@ async function AddOrdersCost(body) {
                         over_distance_cost:order.cost_detail.over_distance_cost,
                         extra: order.cost_detail.extra,
                         sub_cost:order.cost_detail.sub_cost,
-                        is_show_cost: order.is_show_cost
+                        is_show_cost: order.is_show_cost,
+                        remark: order.remark
                     }, {
                         where: {
                             toid: toid,

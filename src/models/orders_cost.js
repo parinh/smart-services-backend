@@ -44,7 +44,7 @@ module.exports = (sequelize, Sequelize) => {
       problem_remark:{ type: Sequelize.TEXT, field: 'problem_remark'},
       is_finish:{ type: Sequelize.TINYINT(1), field: 'is_finish'},
       is_show_cost:{ type: Sequelize.TINYINT(1),defaultValue: 0, field: 'is_show_cost'},
-      remark:{ type: Sequelize.TEXT,field: 'remark'},
+      remark:{type: Sequelize.TEXT,allowNull: true, field: 'remark' },
     },
     {
       tableName: 'orders_cost'

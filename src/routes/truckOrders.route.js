@@ -3,8 +3,7 @@ const express = require('express');
 const router = express.Router();
 
 router.use(function (req, res, next) {
-    
-    TruckOrdersService.setLNo(req.headers.l_no)
+    TruckOrdersService.setLNo(req.headers)
     next()
 })
 

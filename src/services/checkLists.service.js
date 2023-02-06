@@ -11,13 +11,13 @@ async function findAllOrderWithWSO() {
                     [db.op.not]: null
                 }
             },
-            attributes: ['wlid', 'cus_po_id', 'dead_line_date','so_number'],
+            attributes: ['wlid', 'cus_po_id', 'dead_line_date'],
 
             include: [
                 {
                     model: WSO_lists,
                     required: true,
-                    attributes: ['wso_id', 'cus_name', 'job_code'],
+                    attributes: ['wso_id', 'cus_name', 'job_code','so_number'],
                     // include: [{
                     //     model: WSO_goods,
                     //     required: true,
@@ -27,10 +27,10 @@ async function findAllOrderWithWSO() {
             ],
 
         });
-        return (result)
+        return {status:'success',data: result}
     }
     catch (err) {
-
+        return {status:'error',data: err.message}
     }
 
 }

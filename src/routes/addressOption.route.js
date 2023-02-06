@@ -33,6 +33,15 @@ router.get("/warehouses/get", async function (req, res, next) {
     }
 });
 
+router.get("/all-address", async function (req, res, next) {
+    try {
+        res.json(await AddressOption.findAllAddress())
+    }
+    catch (err) { 
+        res.json(err)
+    }
+});
+
 
 
 module.exports = {

@@ -42,7 +42,7 @@ var fs = require('fs');
 // const upload = multer({ storage: storage })
 // const upload = multer({ dest: './public/files/' })
 router.use(function (req, res, next) {
-    salesOrderServices.setLNo(req.headers.l_no,req.headers.au)
+    salesOrderServices.setLNo(req.headers)
     next()
 })
 
@@ -55,11 +55,26 @@ router.get("/search", async function (req, res, next) {
         res.json(err.message)
     }
 });
+//*old
+// router.get("/get", async function (req, res, next) {
+//     try {
+        
+//         if (req.query.status) { //* get by order_status (gate_keeper , order_lists ,complete , ....)
+//             res.json(await salesOrderServices.findByStatus(req.query.status, req.query.option))
+//         }
+//         else { //* if status is NULL get all orders
+//             res.json(await salesOrderServices.find())
+//         }
+//     }
+//     catch (err) {
+//         res.json(err)
+//     }
+// });
 router.get("/get", async function (req, res, next) {
     try {
-        
-        if (req.query.status) { //* get by order_status (gate_keeper , order_lists ,complete , ....)
-            res.json(await salesOrderServices.findByStatus(req.query.status, req.query.option))
+        let order_status = JSON.parse(req.query.options).order_status
+        if (order_status) { //* get by order_status (gate_keeper , order_lists ,complete , ....)
+            res.json(await salesOrderServices.findByStatus(order_status, req.query))
         }
         else { //* if status is NULL get all orders
             res.json(await salesOrderServices.find())
@@ -341,6 +356,24 @@ router.get("/test", async function (req, res, next) {
     }
     catch (err) {
         res.json(err)
+    }
+})
+//*================================================================
+router.get("/search-orders", async function (req, res, next) {
+    try {
+        console.log(req.query);
+        res.json(await salesOrderServices.searchOrdersByStatus(req.query));
+    }
+    catch (err) {
+        res.json(err)
+    }
+})
+
+router.post("/move", async function (req, res, next) {
+    try {
+        res.json(await salesOrderServices.getDataMove(req.body))
+    } catch (error) {
+        res.json(error)
     }
 })
 
