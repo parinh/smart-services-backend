@@ -195,7 +195,7 @@ async function create(body) {
         let oids = body.oids
         let l_no = body.l_no
         let truck_code = await genTruckCode()
-
+        console.log(truck_code);
         let has_truck_oid = await orders.findAll({
             attributes: ['order_code'],
             where: {
@@ -225,8 +225,11 @@ async function create(body) {
                 }
                 )
             }
-
-            return { status: 'success' }
+            console.log(result);
+            return { 
+                status: 'success',
+                toid : result.toid
+             }
         }
 
 
