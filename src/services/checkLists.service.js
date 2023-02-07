@@ -492,6 +492,9 @@ function addProblems(good,wlid) {
                 })
                 types = [...new Set(types)]; //* เอาตัวซ้ำออก
                 console.log(types);
+                if(types.length == 0){
+                    types = null
+                }
 
                 await WSO_lists.update({
                     problem_types : types
