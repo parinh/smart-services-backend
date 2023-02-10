@@ -134,7 +134,7 @@ async function findByStatus(status, option) {
   let page = parseInt(option.page)
   let itemsPerPage = parseInt(option.itemsPerPage)
   let query_page = JSON.parse(option.options).query_page
-  
+
   var query_str = { order_status: status };
   if (query_page == "no_confirm_date") {
     console.log(query_page);
@@ -189,86 +189,82 @@ async function searchOrdersByStatus(query) {
     let query_object_branches = {}
     //* ItemsPerPage กับ page จาก Frontend----------------------------
     // console.log("page ::", page, "itemsPerPage ::", itemsPerPage); //*
-    console.log("options :: ",options); //*
-    //*--------------------------------------------------------------
-    console.log(query_object_orders);
+
     if (l_no != "0") {
       query_object_orders.l_no = l_no;
     }
     //*query string conditions by order_status-----------------------------------------
-    if(options.order_status){
+    if (options.order_status) {
       query_object_orders.order_status = options.order_status;
     }
     //*query string conditions @ orders-----------------------------------------
-    if(search_object.select_customer_group){
+    if (search_object.select_customer_group) {
       query_object_orders.cus_group_name = { [db.op.substring]: search_object.select_customer_group }
     }
-    if(search_object.so_number){
+    if (search_object.so_number) {
       query_object_orders.cus_po_id = { [db.op.substring]: search_object.so_number }
     }
-    if(search_object.select_job_type){
+    if (search_object.select_job_type) {
       query_object_orders.job_type = { [db.op.substring]: search_object.select_job_type }
     }
-    if(search_object.order_code){
+    if (search_object.order_code) {
       query_object_orders.order_code = { [db.op.substring]: search_object.order_code }
     }
-    if(search_object.sale_id){
+    if (search_object.sale_id) {
       query_object_orders.sale_id = { [db.op.substring]: search_object.sale_id }
     }
-    if(search_object.dead_line_date){
+    if (search_object.dead_line_date) {
       query_object_orders.dead_line_date = { [db.op.between]: [search_object.dead_line_date[0], search_object.dead_line_date[1]] }
     }
 
     if (options.query_page == "no_confirm_date") {
-      console.log('no_confirm_date');
       query_object_orders.confirm_date = { [db.op.eq]: null };
     }
     else if (options.query_page == "confirm_date") {
-      if(search_object.confirm_date){
-        console.log('confirm_date');
+      if (search_object.confirm_date) {
         query_object_orders.confirm_date = { [db.op.between]: [search_object.confirm_date[0], search_object.confirm_date[1]] }
       }
-      else{
+      else {
         query_object_orders.confirm_date = { [db.op.ne]: null };
       }
     }
-    else{
-      if(search_object.confirm_date){
-        console.log('xxx');
+    else {
+      if (search_object.confirm_date) {
         query_object_orders.confirm_date = { [db.op.between]: [search_object.confirm_date[0], search_object.confirm_date[1]] }
       }
     }
 
     //*query string conditions @ branch-----------------------------------------
-    if(search_object.branch_name){
+    if (search_object.branch_name) {
       query_object_branches.branch_name = { [db.op.substring]: search_object.branch_name }
     }
-    if(search_object.sub_district){
+    if (search_object.sub_district) {
       query_object_branches.sub_district = { [db.op.substring]: search_object.sub_district }
     }
-    if(search_object.district){
+    if (search_object.district) {
       query_object_branches.district_name = { [db.op.substring]: search_object.district }
     }
-    if(search_object.province){
+    if (search_object.province) {
       query_object_branches.province = { [db.op.substring]: search_object.province }
     }
-    if(search_object.zip_code){
+    if (search_object.zip_code) {
       query_object_branches.zip_code = { [db.op.substring]: search_object.zip_code }
     }
-    console.log('query_object_orders: ', query_object_orders)
-    console.log('query_object_branches: ', query_object_branches)
     let result = await orders.findAndCountAll({
       order: [["oid", "DESC"]],
-      where:{
-        [db.op.and]:query_object_orders
+      where: {
+        [db.op.and]: query_object_orders
       },
-      include:{
-        model:branches,
-        where:{
-          [db.op.and]:query_object_branches,
+      include: [{
+        model: branches,
+        where: {
+          [db.op.and]: query_object_branches,
         },
-        require:true
-      },
+        require: true
+      }, {
+        model: truck_orders,
+        require: false
+      }],
       offset: itemsPerPage * (page - 1),
       limit: itemsPerPage,
     })
@@ -280,7 +276,7 @@ async function searchOrdersByStatus(query) {
     //todo:----------------------------------------------------------------
 
   } catch (err) {
-    console.log(err).message
+    return {status: "error", data: err.massage}
   }
 }
 //*================================================================
@@ -308,6 +304,10 @@ async function findByHasTruckOrder(query) {
           model: branches,
           required: false,
         },
+        {
+          model: truck_orders,
+          required: false,
+        }
       ],
       offset: itemsPerPage * (page - 1),
       limit: itemsPerPage,
@@ -1045,64 +1045,38 @@ async function addOrderToTruckOrder(body) {
 // }
 async function searchOrders(params) {
   try {
-    console.log("params :", params);
     var query_str = [];
     var arr = []
     var join_query_str = {};
     var required = true;
     const { search, order_status, has_truck } = params;
-    console.log("search", search);
-    console.log("order_status", order_status);
-    console.log("has_truck", has_truck);
 
     query_str.order_status = order_status;
     arr.push({ order_status: order_status })
 
-    console.log("query_str.order_status", query_str.order_status);
-
     if (has_truck) {
-      //   query_str.toid = { [db.op.ne]: null };
       arr.push({
         toid: { [db.op.ne]: null }
       })
     }
     if (search) {
-      //   query_str.cus_po_id = { [db.op.substring]: search };
       arr.push({
         cus_po_id: { [db.op.substring]: search }
       })
-      //   query_str.cus_group_name = { [db.op.substring]: search };
-      //   query_str.job_type = { [db.op.substring]: search };
-      //   query_str.order_code = { [db.op.substring]: search };
-      //   query_str.sale_id = { [db.op.substring]: search };
-
-      //   query_str.branch_name = { [db.op.substring]: search };
-      //   query_str.cont_name = { [db.op.substring]: search };
-      //   query_str.district_name = { [db.op.substring]: search };
-      //   query_str.province = { [db.op.substring]: search };
-      //   query_str.sub_district_name = { [db.op.substring]: search };
-      //   query_str.zip_code = { [db.op.substring]: search };
     }
-
-    console.log("query_str :: ", query_str);
-    console.log(arr);
 
     let result = await orders.findAll({
       where: {
         [db.op.or]: [arr],
       },
-      // include: [
-      //     {
-      //         model: branches,
-      //         where: join_query_str,
-      //         required: required
-      //     }
-      // ]
+      include: {
+        model: truck_orders,
+        required: false
+      }
     });
-    console.log("result :: ", result.length);
     return { status: "success", data: result };
   } catch (err) {
-    console.log("error :: ", err.message);
+    return { status: 'error', data: err.message }
   }
 }
 
