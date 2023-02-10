@@ -14,6 +14,7 @@ module.exports = (sequelize, Sequelize) => {
       warehouse_id: { type: Sequelize.INTEGER(11), defaultValue: 1, field: 'warehouse_id' },
       sum_pick_in: { type: Sequelize.INTEGER(11), defaultValue: 0, field: 'sum_pick_in' },
       sum_pick_out: { type: Sequelize.INTEGER(11), defaultValue: 0, field: 'sum_pick_out' },
+      problems: { type: Sequelize.JSON, field: 'problems' },
 
     },
     {

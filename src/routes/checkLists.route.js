@@ -82,7 +82,7 @@ router.put("/update", async function (req, res, next) {
 
 router.get("/wso-lists/get", async function (req, res, next) {
     try {
-        res.json(await checkLists.getWSOLists())
+        res.json(await checkLists.getWSOLists(req.query))
 
     }
     catch (err) { 

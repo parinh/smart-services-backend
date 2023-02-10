@@ -308,6 +308,10 @@ async function findByHasTruckOrder(query) {
           model: branches,
           required: false,
         },
+        {
+          model: truck_orders,
+          required: false,
+        }
       ],
       offset: itemsPerPage * (page - 1),
       limit: itemsPerPage,
