@@ -7,7 +7,7 @@ const fs = require("fs");
 const path = require("path");
 
 const db = require("../configs/sql.config");
-const { truck_orders } = require("../configs/sql.config");
+const { truck_orders, member_options, vehicle_types } = require("../configs/sql.config");
 
 const {
   salesOrder,
@@ -1246,7 +1246,53 @@ async function getDataMove(body) {
   } catch (error) {
 
   }
+
 }
+
+async function dailyMonitoring(query){
+  try {
+    let query_object = JSON.parse(query.query_object);
+    console.log(query_object);
+    orders_query = {}
+    truck_orders_query = {}
+    orders_query.toid = { [db.op.ne] : null}
+    if(query_object.job_types){
+      orders_query.job_type = { [db.op.substring]: query_object.job_types }
+    }
+    if(query_object.date_range){
+      truck_orders_query.start_date = { [db.op.between]: [query_object.date_range[0], query_object.date_range[1]] }
+    }
+    result = await orders.findAll({
+      where: orders_query,
+      include:[
+        {
+          model: truck_orders,
+          where:truck_orders_query,
+          require: true,
+          include: {
+            model: member_options,
+            require: true,
+            include: {
+              model: vehicle_types,
+              require:true
+            }
+          }
+        },
+        {
+          model: branches,
+          require: true
+        }
+      ]
+    })
+
+    return result
+  } catch (error) {
+    console.log(error.message);
+    return { status: 'error' }
+  }
+  
+}
+
 // async function getWSOForChecklists(status) {
 //   try {
 //     console.log("aaa");
@@ -1301,6 +1347,7 @@ async function getDataMove(body) {
 //   }
 // }
 
+
 module.exports = {
   find,
   findByStatus,
@@ -1329,5 +1376,6 @@ module.exports = {
   findByProblem,
   test,
   searchOrdersByStatus,
-  getDataMove
+  getDataMove,
+  dailyMonitoring
 };

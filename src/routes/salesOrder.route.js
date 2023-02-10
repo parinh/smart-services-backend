@@ -377,6 +377,14 @@ router.post("/move", async function (req, res, next) {
     }
 })
 
+router.get('/daily-monitoring', async function (req, res, next) {
+    try {
+        res.json(await salesOrderServices.dailyMonitoring(req.query))
+    } catch (error) {
+        res.json(error)
+    }
+})
+
 
 
 
