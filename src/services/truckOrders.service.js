@@ -45,47 +45,49 @@ function setLNo(headers) {
 }
 
 async function findAll(status = []) {
-  try {
-    let return_lno = l_no;
-    console.log("l_no : ", return_lno);
-    console.log("status : ", status);
-    let where_str = {};
-    if (status) {
-      where_str.to_status = {
-        [db.op.in]: status,
-      };
-    }
-    if (l_no != "0") {
-      where_str.l_no = l_no;
-    }
-    let result = await truck_orders.findAll({
-      where: where_str,
-      include: [
-        {
-          model: member_options,
-          required: false,
-          include: [
-            {
-              model: vehicle_types,
-              required: false,
-            },
-          ],
-        },
-        {
-          model: orders,
-          required: false,
-          include: [
-            {
-              model: branches,
-              required: false,
-            },
-          ],
-        },
-      ],
-    });
+    try {
+        let return_lno = l_no
+        console.log('l_no : ',return_lno);
+        let where_str = {}
+        if (status) {
+            where_str.to_status = {
+                [db.op.in]: status
+            }
+        }
+        if (l_no != "0") {
+            where_str.l_no = l_no
+        }
+        let result = await truck_orders.findAll({
+            where: where_str,
+            include: [
+                {
+                    model: member_options,
+                    required: false,
+                    include: [
+                        {
+                            model: vehicle_types,
+                            required: false,
+                        }
+                    ]
+                },
+                {
+                    model: orders,
+                    required: false,
+                    include: [
+                        {
+                            model: branches,
+                            required: false
+                        }
+                    ]
+                },
 
-    return { status: "success", data: result, l_no: return_lno };
-  } catch (err) {
+            ],
+            order: [['start_date', 'DESC']]
+        });
+
+        return { status: 'success', data: result ,l_no:return_lno };
+    }  
+   catch (err) {
     return { status: "error", message: err.message };
   }
 }

@@ -138,7 +138,6 @@ router.get("/get/is/truck-order", async function (req, res, next) {
 
 router.get("/get/orders/search", async function (req, res, next) {
     try {
-        console.log(req.query)
         res.json(await salesOrderServices.searchOrders(req.query));
     }
     catch (err) {
@@ -361,7 +360,6 @@ router.get("/test", async function (req, res, next) {
 //*================================================================
 router.get("/search-orders", async function (req, res, next) {
     try {
-        console.log(req.query);
         res.json(await salesOrderServices.searchOrdersByStatus(req.query));
     }
     catch (err) {
@@ -372,6 +370,14 @@ router.get("/search-orders", async function (req, res, next) {
 router.post("/move", async function (req, res, next) {
     try {
         res.json(await salesOrderServices.getDataMove(req.body))
+    } catch (error) {
+        res.json(error)
+    }
+})
+
+router.get('/daily-monitoring', async function (req, res, next) {
+    try {
+        res.json(await salesOrderServices.dailyMonitoring(req.query))
     } catch (error) {
         res.json(error)
     }
