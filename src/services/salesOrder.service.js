@@ -39,8 +39,11 @@ let l_no = "0";
 
 // }
 function setLNo(headers) {
-  let split_bearer = headers.authorization.split(' ')[1]
-  l_no = jwt_service.decodeToken(split_bearer).data.l_no ?? l_no
+  if(headers.authorization){
+    let split_bearer = headers.authorization.split(' ')[1]
+    l_no = jwt_service.decodeToken(split_bearer).data.l_no ?? l_no
+  }
+
 }
 
 async function test() {
@@ -1233,37 +1236,99 @@ async function getWSOForChecklists() {
 
 async function getDataMove(body) {
   try {
-    console.log(body)
-    let origin = await body.create({
-      cus_po_id: body.origin.oid,
-      ship_date: body.origin.date,
-      branch: {
-        address: body.origin.moreaddress_sender,
-        province: body.origin.province_sender,
-        district_name: body.origin.district_sender,
-        sub_district_name: body.origin.subdistrict_sender,
-        zip_code: body.origin.zipcode_sender,
-        cont_name: body.origin.name,
-        cont_tel: body.origin.tel,
-        email: body.origin.email
-      }
-    })
-    let destination = await body.create({
-      cus_po_id: body.destination.oid,
-      ship_date: body.destination.date,
-      branch: {
-        address: body.destination.moreaddress_reciever,
-        province: body.destination.province_reciever,
-        district_name: body.destination.district_reciever,
-        sub_district_name: body.destination.subdistrict_reciever,
-        zip_code: body.destination.zipcode_reciever,
-        cont_name: body.destination.name,
-        cont_tel: body.destination.tel,
-        email: body.destination.email
-      }
-    })
-  } catch (error) {
+    //TODO ทำตัว wso เก็บพวกกล่อง ที่รับมา
+    var origin = body.origin
+    var destination = body.destination
 
+    let origin_branch =  await branches.create({
+      cus_group_name:'general',
+      province: origin.branch.province,
+      branch_name : origin.branch.cont_name,
+      zip_code:origin.branch.zip_code,
+      district_name:origin.branch.district_name,
+      sub_district_name:origin.branch.sub_district_name,
+      address:origin.branch.address,
+      cont_name:origin.branch.cont_name,
+      cont_tel:origin.branch.cont_tel,
+      l_no:0,
+      cust_name:origin.branch.cont_name,
+      create_by:'move'
+    })
+    let order_code_origin = await genOrderCode();
+
+    await orders.create({
+      cus_group_name: 'general',
+      branch_id: origin_branch.branch_id,
+      cus_po_id: origin.cus_po_id,
+      created_by: 'move',
+      ship_date: origin.ship_date,
+      job_type: 'move',
+      l_no: 0,
+      // remark: form.remark, //*ใส่รายการของที่ต้องไปเอา
+      order_code: order_code_origin,
+      order_status: 1,
+      order_type_id:5
+    });
+
+    let destination_branch = await branches.create({
+      cus_group_name:'general',
+      province: destination.province,
+      branch_name : destination.cont_name,
+      zip_code:destination.zip_code,
+      district_name:destination.district_name,
+      sub_district_name:destination.sub_district_name,
+      address:destination.address,
+      cont_name:destination.cont_name,
+      cont_tel:destination.cont_tel,
+      l_no:0,
+      cust_name:destination.cont_name,
+      create_by:'move'
+    })
+    let order_code_destination = await genOrderCode();
+    
+    await orders.create({
+      cus_group_name: 'general',
+      branch_id: destination_branch.branch_id,
+      cus_po_id: destination.cus_po_id,
+      created_by: 'move',
+      ship_date: destination.ship_date,
+      job_type: 'move',
+      l_no: 0,
+      // remark: form.remark, //*ใส่รายการของที่ต้องไปเอา
+      order_code: order_code_destination,
+      order_status: 1,
+      order_type_id:5
+    });
+    // let origin = await body.create({
+    //   cus_po_id: body.origin.oid,
+    //   ship_date: body.origin.date,
+    //   branch: {
+    //     address: body.origin.moreaddress_sender,
+    //     province: body.origin.province_sender,
+    //     district_name: body.origin.district_sender,
+    //     sub_district_name: body.origin.subdistrict_sender,
+    //     zip_code: body.origin.zipcode_sender,
+    //     cont_name: body.origin.name,
+    //     cont_tel: body.origin.tel,
+    //     email: body.origin.email
+    //   }
+    // })
+    // let destination = await body.create({
+    //   cus_po_id: body.destination.oid,
+    //   ship_date: body.destination.date,
+    //   branch: {
+    //     address: body.destination.moreaddress_reciever,
+    //     province: body.destination.province_reciever,
+    //     district_name: body.destination.district_reciever,
+    //     sub_district_name: body.destination.subdistrict_reciever,
+    //     zip_code: body.destination.zipcode_reciever,
+    //     cont_name: body.destination.name,
+    //     cont_tel: body.destination.tel,
+    //     email: body.destination.email
+    //   }
+    // })
+  } catch (error) {
+    console.log(error);
   }
 }
 // async function getWSOForChecklists(status) {
