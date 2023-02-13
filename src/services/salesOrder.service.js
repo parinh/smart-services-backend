@@ -39,8 +39,10 @@ let l_no = "0";
 
 // }
 function setLNo(headers) {
-  let split_bearer = headers.authorization.split(' ')[1]
-  l_no = jwt_service.decodeToken(split_bearer).data.l_no ?? l_no
+  if(headers.authorization){
+    let split_bearer = headers.authorization.split(' ')[1]
+    l_no = jwt_service.decodeToken(split_bearer).data.l_no ?? l_no
+  }
 }
 
 async function test() {
