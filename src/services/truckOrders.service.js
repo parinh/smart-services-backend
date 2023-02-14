@@ -44,20 +44,28 @@ function setLNo(headers) {
   l_no = jwt_service.decodeToken(split_bearer).data.l_no ?? l_no;
 }
 
-async function findAll(status = []) {
+async function findAll(query) {
+    
     try {
+        let page = parseInt(query.page)
+        let itemsPerPage = parseInt(query.itemsPerPage)
+        let options = JSON.parse(query.options)
+        console.log('page : ',page);
+        console.log('itemsPerpage : ',itemsPerPage);
+        console.log('options : ',options);
         let return_lno = l_no
         console.log('l_no : ',return_lno);
         let where_str = {}
-        if (status) {
+        if (options.to_status) {
             where_str.to_status = {
-                [db.op.in]: status
+                [db.op.in]: options.to_status
             }
         }
         if (l_no != "0") {
             where_str.l_no = l_no
         }
-        let result = await truck_orders.findAll({
+        console.log('str ',where_str);
+        let result = await truck_orders.findAndCountAll({
             where: where_str,
             include: [
                 {
@@ -69,6 +77,7 @@ async function findAll(status = []) {
                             required: false,
                         }
                     ]
+                    
                 },
                 {
                     model: orders,
@@ -82,10 +91,12 @@ async function findAll(status = []) {
                 },
 
             ],
-            order: [['start_date', 'DESC']]
+            distinct: true,
+            order: [['start_date', 'DESC']],
+            offset: itemsPerPage * (page - 1),
+            limit: itemsPerPage,
         });
-
-        return { status: 'success', data: result ,l_no:return_lno };
+        return { status: 'success', data: result.rows ,l_no:return_lno, count:result.count };
     }  
    catch (err) {
     return { status: "error", message: err.message };
@@ -249,6 +260,10 @@ async function searchTruckOrdersBySearchObjects(query) {
           ],
         },
       ],
+      distinct: true,
+      order: [['start_date', 'DESC']],
+      offset: itemsPerPage * (page - 1),
+      limit: itemsPerPage,
         // include: [
         //   {
         //     model: orders,
@@ -281,11 +296,12 @@ async function searchTruckOrdersBySearchObjects(query) {
         // ],require: false
       // where: db.sequelize.where(db.sequelize.fn('JSON_LENGTH', db.sequelize.col('emps')),search_object.emps_length)
     });
-    // console.log(result);
+    console.log(result.count);
     return {
       status: "success",
       data: result.rows,
       count: result.count,
+      l_no:return_lno
     };
   } catch (error) {
     console.log(error.message);

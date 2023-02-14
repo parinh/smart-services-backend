@@ -18,10 +18,7 @@ router.get("/get", async function (req, res, next) {
 
 router.get("/get/status", async function (req, res, next) {
     try {
-        console.log('before : ',req.query.status);
-        let status_arr = req.query.status.split (',')
-        console.log('after : ',status_arr);
-        res.json(await TruckOrdersService.findAll(status_arr))
+        res.json(await TruckOrdersService.findAll(req.query))
     }
     catch (err) { 
         res.json(err)
