@@ -67,7 +67,8 @@ async function findAll(status = []) {
                     ]
                 },
 
-            ]
+            ],
+            order: [['start_date', 'DESC']]
         });
 
         return { status: 'success', data: result ,l_no:return_lno };
