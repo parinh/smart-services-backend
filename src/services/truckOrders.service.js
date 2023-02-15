@@ -45,60 +45,61 @@ function setLNo(headers) {
 }
 
 async function findAll(query) {
-    
-    try {
-        let page = parseInt(query.page)
-        let itemsPerPage = parseInt(query.itemsPerPage)
-        let options = JSON.parse(query.options)
-        console.log('page : ',page);
-        console.log('itemsPerpage : ',itemsPerPage);
-        console.log('options : ',options);
-        let return_lno = l_no
-        console.log('l_no : ',return_lno);
-        let where_str = {}
-        if (options.to_status) {
-            where_str.to_status = {
-                [db.op.in]: options.to_status
-            }
-        }
-        if (l_no != "0") {
-            where_str.l_no = l_no
-        }
-        console.log('str ',where_str);
-        let result = await truck_orders.findAndCountAll({
-            where: where_str,
-            include: [
-                {
-                    model: member_options,
-                    required: false,
-                    include: [
-                        {
-                            model: vehicle_types,
-                            required: false,
-                        }
-                    ]
-                    
-                },
-                {
-                    model: orders,
-                    required: false,
-                    include: [
-                        {
-                            model: branches,
-                            required: false
-                        }
-                    ]
-                },
-
-            ],
-            distinct: true,
-            order: [['start_date', 'DESC']],
-            offset: itemsPerPage * (page - 1),
-            limit: itemsPerPage,
-        });
-        return { status: 'success', data: result.rows ,l_no:return_lno, count:result.count };
-    }  
-   catch (err) {
+  try {
+    let page = parseInt(query.page);
+    let itemsPerPage = parseInt(query.itemsPerPage);
+    let options = JSON.parse(query.options);
+    console.log("page : ", page);
+    console.log("itemsPerpage : ", itemsPerPage);
+    console.log("options : ", options);
+    let return_lno = l_no;
+    console.log("l_no : ", return_lno);
+    let where_str = {};
+    if (options.to_status) {
+      where_str.to_status = {
+        [db.op.in]: options.to_status,
+      };
+    }
+    if (l_no != "0") {
+      where_str.l_no = l_no;
+    }
+    console.log("str ", where_str);
+    let result = await truck_orders.findAndCountAll({
+      where: where_str,
+      include: [
+        {
+          model: member_options,
+          required: false,
+          include: [
+            {
+              model: vehicle_types,
+              required: false,
+            },
+          ],
+        },
+        {
+          model: orders,
+          required: false,
+          include: [
+            {
+              model: branches,
+              required: false,
+            },
+          ],
+        },
+      ],
+      distinct: true,
+      order: [["start_date", "DESC"]],
+      offset: itemsPerPage * (page - 1),
+      limit: itemsPerPage,
+    });
+    return {
+      status: "success",
+      data: result.rows,
+      l_no: return_lno,
+      count: result.count,
+    };
+  } catch (err) {
     return { status: "error", message: err.message };
   }
 }
@@ -115,13 +116,13 @@ async function searchTruckOrdersBySearchObjects(query) {
   let query_object_branches = {};
   let query_object_vehicle_types = {};
   let return_lno = l_no;
-  let require_truck_orders_bool = false
-  let require_orders_bool = false
-  let require_member_options_bool = false
-  let require_branches_model = false
-  let require_vehicle_type_model = false
+  let require_truck_orders_bool = false;
+  let require_orders_bool = false;
+  let require_member_options_bool = false;
+  let require_branches_model = false;
+  let require_vehicle_type_model = false;
 
-  console.log("search_object : ",search_object);
+  console.log("search_object : ", search_object);
   // console.log("page : ",page);
   // console.log("itemsPerPage : ",itemsPerPage);
   // console.log("options : ",options);
@@ -159,7 +160,7 @@ async function searchTruckOrdersBySearchObjects(query) {
       });
     }
     if (search_object.start_date) {
-        require_truck_orders_bool = true
+      require_truck_orders_bool = true;
       query_object_truck_orders.push({
         start_date: {
           [db.op.between]: [
@@ -171,19 +172,19 @@ async function searchTruckOrdersBySearchObjects(query) {
     }
     //*query_object_orders =================================================================================================================
     if (search_object.order_code) {
-        require_orders_bool = true
+      require_orders_bool = true;
       query_object_orders.order_code = {
         [db.op.substring]: search_object.order_code,
       };
     }
     if (search_object.cus_po_id) {
-        require_orders_bool = true
+      require_orders_bool = true;
       query_object_orders.cus_po_id = {
         [db.op.substring]: search_object.cus_po_id,
       };
     }
     if (search_object.select_job_type) {
-        require_orders_bool = true
+      require_orders_bool = true;
       query_object_orders.job_type = {
         [db.op.substring]: search_object.select_job_type,
       };
@@ -207,7 +208,7 @@ async function searchTruckOrdersBySearchObjects(query) {
     }
     //*query_object_vehicle_types =================================================================================================================
     if (search_object.vehicle_type) {
-        require_vehicle_type_model = true
+      require_vehicle_type_model = true;
       query_object_vehicle_types.vehicle = {
         [db.op.substring]: search_object.vehicle_type,
       };
@@ -261,39 +262,39 @@ async function searchTruckOrdersBySearchObjects(query) {
         },
       ],
       distinct: true,
-      order: [['start_date', 'DESC']],
+      order: [["start_date", "DESC"]],
       offset: itemsPerPage * (page - 1),
       limit: itemsPerPage,
-        // include: [
-        //   {
-        //     model: orders,
-        //     where: {
-        //       [db.op.and]: query_object_orders,
-        //     },
-        //     require: false,
-        //     include: [{
-        //       model: branches,
-        //       where: {
-        //         [db.op.and]: query_object_branches,
-        //       },
-        //       require: false,
-        //     }],
-        //   },
-        //   {
-        //     model: member_options,
-        //     where: {
-        //       [db.op.and]: query_object_member_options,
-        //     },
-        //     require: false,
-        //     include: [{
-        //       model: vehicle_types,
-        //       where: {
-        //         [db.op.and]: query_object_vehicle_types,
-        //       },
-        //       require: false,
-        //     }],
-        //   },
-        // ],require: false
+      // include: [
+      //   {
+      //     model: orders,
+      //     where: {
+      //       [db.op.and]: query_object_orders,
+      //     },
+      //     require: false,
+      //     include: [{
+      //       model: branches,
+      //       where: {
+      //         [db.op.and]: query_object_branches,
+      //       },
+      //       require: false,
+      //     }],
+      //   },
+      //   {
+      //     model: member_options,
+      //     where: {
+      //       [db.op.and]: query_object_member_options,
+      //     },
+      //     require: false,
+      //     include: [{
+      //       model: vehicle_types,
+      //       where: {
+      //         [db.op.and]: query_object_vehicle_types,
+      //       },
+      //       require: false,
+      //     }],
+      //   },
+      // ],require: false
       // where: db.sequelize.where(db.sequelize.fn('JSON_LENGTH', db.sequelize.col('emps')),search_object.emps_length)
     });
     console.log(result.count);
@@ -301,7 +302,7 @@ async function searchTruckOrdersBySearchObjects(query) {
       status: "success",
       data: result.rows,
       count: result.count,
-      l_no:return_lno
+      l_no: return_lno,
     };
   } catch (error) {
     console.log(error.message);
@@ -496,7 +497,6 @@ async function create(body) {
       };
     }
   } catch (err) {
-    console.log(err);
     return { status: "error", data: err.message };
   }
 }
@@ -843,7 +843,6 @@ async function searchByTruckCode(params) {
       data: result,
     };
   } catch (err) {
-    console.log(err);
     return {
       status: "error",
       data: err.message,

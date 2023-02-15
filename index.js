@@ -38,7 +38,6 @@ app.use(
 );
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-//asdasdasdas
 app.use(expressjwt({ secret: jwt_secret, algorithms: ['HS256'] })
     .unless( //* This allows access to /token/sign without token authentication
         {

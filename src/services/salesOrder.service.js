@@ -489,7 +489,7 @@ async function create_by_form(body, files = "") {
       );
     }
 
-    return { status: "success" };
+    return { status: "success",wso_result:wso_result };
   } catch (err) {
     return { status: "error", data: err.message };
   }
@@ -543,35 +543,50 @@ async function create_aso_set(aso_lists, aso_goods) {
 async function create_wso_set(wso_lists, wso_goods) {
   return new Promise(async (resolve, reject) => {
     try {
-      var wso_result = await WSO_lists.create({
-        wso_id: wso_lists.wso_id,
-        doc_date: wso_lists.doc_date,
-        ship_date: wso_lists.ship_date,
-        cus_code: wso_lists.cus_code,
-        cus_name: wso_lists.cus_name,
-        job_code: wso_lists.job_code,
-        job_name: wso_lists.job_name,
-        dep_name: wso_lists.dep_name,
-      });
-
-      if (wso_result) {
-        var wso_result_id = wso_result.wlid;
-
-        for (let wso_good of wso_goods) {
-          await WSO_goods.create({
-            wso_id: wso_good.wso_id,
-            wlid: wso_result_id,
-            wso_good_code: wso_good.wso_good_code,
-            wso_good_name: wso_good.wso_good_name,
-            wso_good_amount: Number(wso_good.wso_good_amount),
-            wso_good_quantity: Number(wso_good.wso_good_quantity),
-            wso_good_price: Number(wso_good.wso_good_price),
-            missing_quantity: Number(wso_good.wso_good_quantity),
-          });
+      let find_wso_result = await WSO_lists.findOne({
+        where:{
+          so_number : wso_lists.so_number
         }
-        resolve(wso_result);
+      })
+      if(!find_wso_result){
+        var wso_result = await WSO_lists.create({
+          so_number:wso_lists.so_number,
+          wso_id: wso_lists.wso_id,
+          doc_date: wso_lists.doc_date,
+          ship_date: wso_lists.ship_date,
+          cus_code: wso_lists.cus_code,
+          cus_name: wso_lists.cus_name,
+          job_code: wso_lists.job_code,
+          job_name: wso_lists.job_name,
+          dep_name: wso_lists.dep_name,
+        });
+  
+        if (wso_result) {
+          var wso_result_id = wso_result.wlid;
+  
+          for (let wso_good of wso_goods) {
+            await WSO_goods.create({
+              wso_id: wso_good.wso_id,
+              wlid: wso_result_id,
+              wso_good_code: wso_good.wso_good_code,
+              wso_good_name: wso_good.wso_good_name,
+              wso_good_amount: Number(wso_good.wso_good_amount),
+              wso_good_quantity: Number(wso_good.wso_good_quantity),
+              wso_good_price: Number(wso_good.wso_good_price),
+              missing_quantity: Number(wso_good.wso_good_quantity),
+            });
+          }
+          resolve(wso_result);
+        }
       }
+      else{
+        console.log('no update');
+        resolve(find_wso_result);
+      }
+
+      
     } catch (err) {
+      console.log(err);
       reject(err);
     }
   });
@@ -1190,7 +1205,69 @@ async function getWSOForChecklists() {
 
 async function getDataMove(body) {
   try {
-    console.log(body)
+    //TODO ทำตัว wso เก็บพวกกล่อง ที่รับมา
+    var origin = body.origin
+    var destination = body.destination
+
+    let origin_branch =  await branches.create({
+      cus_group_name:'general',
+      province: origin.branch.province,
+      branch_name : origin.branch.cont_name,
+      zip_code:origin.branch.zip_code,
+      district_name:origin.branch.district_name,
+      sub_district_name:origin.branch.sub_district_name,
+      address:origin.branch.address,
+      cont_name:origin.branch.cont_name,
+      cont_tel:origin.branch.cont_tel,
+      l_no:0,
+      cust_name:origin.branch.cont_name,
+      create_by:'move'
+    })
+    let order_code_origin = await genOrderCode();
+
+    await orders.create({
+      cus_group_name: 'general',
+      branch_id: origin_branch.branch_id,
+      cus_po_id: origin.cus_po_id,
+      created_by: 'move',
+      ship_date: origin.ship_date,
+      job_type: 'move',
+      l_no: 0,
+      // remark: form.remark, //*ใส่รายการของที่ต้องไปเอา
+      order_code: order_code_origin,
+      order_status: 1,
+      order_type_id:5
+    });
+
+    let destination_branch = await branches.create({
+      cus_group_name:'general',
+      province: destination.province,
+      branch_name : destination.cont_name,
+      zip_code:destination.zip_code,
+      district_name:destination.district_name,
+      sub_district_name:destination.sub_district_name,
+      address:destination.address,
+      cont_name:destination.cont_name,
+      cont_tel:destination.cont_tel,
+      l_no:0,
+      cust_name:destination.cont_name,
+      create_by:'move'
+    })
+    let order_code_destination = await genOrderCode();
+    
+    await orders.create({
+      cus_group_name: 'general',
+      branch_id: destination_branch.branch_id,
+      cus_po_id: destination.cus_po_id,
+      created_by: 'move',
+      ship_date: destination.ship_date,
+      job_type: 'move',
+      l_no: 0,
+      // remark: form.remark, //*ใส่รายการของที่ต้องไปเอา
+      order_code: order_code_destination,
+      order_status: 1,
+      order_type_id:5
+    });
     // let origin = await body.create({
     //   cus_po_id: body.origin.oid,
     //   ship_date: body.origin.date,
@@ -1220,7 +1297,7 @@ async function getDataMove(body) {
     //   }
     // })
   } catch (error) {
-
+    console.log(error);
   }
 
 }

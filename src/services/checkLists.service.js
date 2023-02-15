@@ -17,7 +17,7 @@ async function findAllOrderWithWSO() {
                 {
                     model: WSO_lists,
                     required: true,
-                    attributes: ['wso_id', 'cus_name', 'job_code'],
+                    attributes: ['wso_id', 'cus_name', 'job_code', 'so_number'],
                     // include: [{
                     //     model: WSO_goods,
                     //     required: true,
@@ -27,10 +27,10 @@ async function findAllOrderWithWSO() {
             ],
 
         });
-        return (result)
+        return { status: 'success', data: result }
     }
     catch (err) {
-
+        return { status: 'error', data: err.message }
     }
 
 }
@@ -78,7 +78,6 @@ async function findWSOById(wlid, toid) {
 
 async function findWaitingPutOut(toid) {
     try {
-        //* หยิบ wlid ทั้งหมดใน toid นี้มาแล้วเช็คว่าอันไหนทำแล้วบ้างจาก wl_status
         var result = await orders.findAll({
             where: { toid: toid, wlid: { [db.op.ne]: null } },
             include: [
@@ -161,9 +160,10 @@ async function updateCheckLists(goods) {
         for (let good of goods) {
             await check_lists.update({
                 number: good.number,
-                detail: good.detail,
+                // detail: good.detail,
                 out_number: good.out_number,
-                put_out_time: good.put_out_time
+                warehouse_id: good.warehouse_id,
+                problems: good.problems
             }
                 , {
                     where: { clid: good.clid }
@@ -177,20 +177,24 @@ async function updateCheckLists(goods) {
 
     }
 }
-async function updateCheckListsOutNumber(goods) {
+async function updateCheckListsOutNumber(body) {
     try {
-        var now = moment().format()
+        let now = moment().format()
+        let goods = body.goods
+        let wlid = body.wlid
+        // 
         for (let good of goods) {
             await check_lists.update({
                 out_number: good.out_number,
                 put_out_time: now,
-                problems : good.problems,
+                problems: good.problems,
                 is_put_out: 1
             }
                 , {
                     where: { clid: good.clid }
                 })
         }
+        await this.calSumAllCheckList(wlid)
         return { status: "success" }
 
     } catch (error) {
@@ -231,7 +235,7 @@ async function createChecklists(body) {
             })
         }
         var result = await this.calSumAllCheckList(wlid)
-        // console.log(result);
+        // 
 
         // let find = await check_lists.findOrCreate({
         //     where: {
@@ -287,7 +291,7 @@ async function createChecklists(body) {
 
     }
     catch (err) {
-        console.log(err);
+
         return { status: 'error', data: err.message }
     }
 }
@@ -314,24 +318,35 @@ async function calSumAllCheckList(wlid) {
             for (var good of goods) {
                 var wgid = good.wgid
                 var new_missing = good.wso_good_quantity
+                var sum_pick_in = 0
+                var sum_pick_out = 0
 
                 for (var check_list of good.check_lists) {
-                    if(check_list.is_put_out == 0){
+                    //* รวมจำนวนขึ้น - ลง
+                    sum_pick_in += check_list.number
+                    sum_pick_out += check_list.out_number
+
+                    //* รวมจำนวนของค้าง
+                    if (check_list.is_put_out == 0) {
                         new_missing -= check_list.number
                     }
-                    else{
+                    else {
                         new_missing -= check_list.out_number
                     }
                 }
                 await WSO_goods.update({
-                    missing_quantity:new_missing
-                },{
-                    where: {wgid : wgid}
+                    missing_quantity: new_missing,
+                    sum_pick_in: sum_pick_in,
+                    sum_pick_out: sum_pick_out
+
+                }, {
+                    where: { wgid: wgid }
                 })
-                // console.log(new_missing);
+                // 
             }
             resolve(goods)
         } catch (error) {
+
             reject(error)
         }
     })
@@ -391,15 +406,19 @@ async function findByTimes(toid, times, wlid) {
     }
 
 }
-async function findCheckListForPickOutForm(wlid) {
+async function findCheckListForPickOutForm(query) {
     try {
-        var result = await WSO_lists.findOne({
-            where: { wlid: wlid },
+        let wlid = query.wlid;
+        let toid = query.toid;
+
+        let result = await WSO_lists.findOne({
+            where: { wlid: wlid, },
             include: [{
                 model: WSO_goods,
                 include: [{
                     where: {
-                        is_put_out: 0
+                        is_put_out: 0,
+                        toid: toid
                     },
                     model: check_lists
                 }]
@@ -424,41 +443,119 @@ async function destroyCheckList(query) {
                 times: times
             }
         })
-        var cal_result = await this.calSumAllCheckList(wlid)
+        await this.calSumAllCheckList(wlid)
 
         return { status: 'success' }
 
     } catch (error) {
 
-        return { status: 'error' ,data :error.message }
+        return { status: 'error', data: error.message }
     }
 }
 
-async function updateWSOListStatus(body) {
+ //* ทำเรื่องแยกฝ่ายให้ wso_lists เพื่อไปโชว์  , ทำรวมปัญหาของแต่ละของทั้งหมดไปเก็บที่ wso_good
+function addProblems(good, wlid) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let wso = await WSO_lists.findOne({
+                where: { wlid: wlid },
+                include: {
+                    attributes: ['wgid'],
+                    model: WSO_goods,
+                    require: true,
+                }
+            })
+            if (wso) {
+                let problems = await problem_status.findAll({})
+                let goods_ids = []
+                for (const good of wso.WSO_goods) { //* เอา id good มาทุกตัว
+                    goods_ids.push(good.wgid)
+                }
+                let lists = await check_lists.findAll({
+                    where: { wgid: { [db.op.in]: goods_ids }, is_confirm: 1 },
+                })
+                let problems_types = []
+                let good_problems_hm = new Map();
+                
+                for (const list of lists) { //* เอา problem ทุกตัวมาเก็บใน array
+                    if (list.problems) {
+                        for (const problem of list.problems) {
+                            if (!problems_types.includes(problem.problem_id)) { //* เก็บใน array เพื่อไปทำ wso_list บอกฝ่ายที่เกี่ยวกับปัญหา
+                                problems_types.push(problem.problem_id)
+                            }
+
+                            //* เอาปัญหาทั้งหมดมาแยกเป็นของว่าของมีปัญหาอะไร เก็บใน hm
+                            if (good_problems_hm.get(list.wgid)){
+                                let arr = good_problems_hm.get(list.wgid)
+                                arr.push(problem.problem_id)
+                                arr = [...new Set(arr)]
+                                good_problems_hm.set(list.wgid,arr)
+                            }
+                            if(!good_problems_hm.get(list.wgid)){
+                                good_problems_hm.set(list.wgid,[problem.problem_id])
+                            }
+                        }
+                    }
+                }
+                //* ช่วงเช็ค ฝ่ายว่าฝ่ายไหนบ้างที่ตรงกับปห
+                let types = []
+                problems_types.forEach(problem_id => { //* เอาปหทุกตัวมาดูว่าเป็น type ไหกนบ่าง
+                    let arr = problems[problem_id - 1].type
+                    types.push(...arr)
+                })
+                types = [...new Set(types)]; //* เอาตัวซ้ำออก
+                console.log(types);
+                if (types.length == 0) {
+                    types = null
+                }
+
+                for(let [key,value] of good_problems_hm){
+                    await WSO_goods.update({
+                        problems: value
+                    },{
+                        where:{wgid:key}
+                    })
+                }
+
+                await WSO_lists.update({
+                    problem_types: types
+                }, {
+                    where: { wlid: wlid }
+                })
+                resolve()
+
+            }
+
+            // console.log(result);
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+async function updateIsConfirm(body) {
     try {
-        const wlid = body.wlid
+
+        const toid = body.toid
+        const times = body.times
         const status_target = body.status_target
+        const good_ids = body.good_ids
+        const wlid = body.wlid
 
-
-        await WSO_lists.update({
-            wl_status: status_target
+        await check_lists.update({
+            is_confirm: status_target
         }, {
             where: {
-                wlid: wlid,
+                toid: toid,
+                times: times
             }
         })
-        // await truck_orders.update({
-        //     cl_status:status_target
-        // },{
-        //     where : {
-        //         toid:toid
-        //     }
-        // })
 
+        await addProblems(good_ids, wlid)
         return { status: 'success' }
 
     } catch (error) {
-
+        console.log(error);
         return { status: 'error' }
     }
 }
@@ -478,9 +575,37 @@ async function updateWSOGoodWareHouse(goods) {
         return ({ status: 'success' })
     } catch (error) {
 
-        return ({ stauts: 'error', data: error.message })
+        return ({ status: 'error', data: error.message })
     }
 }
+
+async function getWSOLists(query) {
+    try {
+        let itemsPerPage = parseInt(query.items_per_page)
+        let page = parseInt(query.page)
+        let result = await WSO_lists.findAndCountAll({
+            // where:{problem_types: {[db.op.ne]: null }},
+
+            include: {
+                model: WSO_goods,
+                require: true,
+                where: {
+                    missing_quantity: { [db.op.ne]: 0 },
+                    // sum_pick_out:{[db.op.eq]: 0}
+                },
+                offset: itemsPerPage * (page - 1),
+                limit: itemsPerPage,
+            },
+        })
+
+        return ({ status: 'success', data: result.rows, count: result.count })
+    } catch (error) {
+        console.log(error);
+        return ({ status: 'error', data: error.message })
+    }
+}
+
+
 
 // async function findAllProvinces(){
 //     let result = await provinces.findAll();
@@ -506,12 +631,13 @@ module.exports = {
     updateMissingQuantity,
     findByTimes,
     destroyCheckList,
-    updateWSOListStatus,
     findWaitingPutOut,
     findCheckListForPickOutForm,
     updateCheckListsOutNumber,
     updateCheckLists,
     updateWSOGoodWareHouse,
-    calSumAllCheckList
+    calSumAllCheckList,
+    getWSOLists,
+    updateIsConfirm
 
 }

@@ -32,11 +32,11 @@ router.get("/get/by/time", async function (req, res, next) {
         var toid = req.query.toid;
         var times = req.query.times;
         var wlid = req.query.wlid;
-        console.log(wlid);
+        
         res.json(await checkLists.findByTimes(toid,times,wlid))
     }
     catch (err) { 
-        console.log(err);
+        
         res.json(err)
     }
 });
@@ -46,33 +46,32 @@ router.get("/get/by/toid", async function (req, res, next) {
         res.json(await checkLists.findWaitingPutOut(toid))
     }
     catch (err) { 
-        console.log(err);
+        
         res.json(err)
     }
 });
 router.get("/get/by/oid", async function (req, res, next) {
     try {
-        var wlid = req.query.wlid;
-        res.json(await checkLists.findCheckListForPickOutForm(wlid))
+        res.json(await checkLists.findCheckListForPickOutForm(req.query))
     }
     catch (err) { 
-        console.log(err);
+        
         res.json(err)
     }
 });
 
 router.get("/goods-status/get", async function (req, res, next) {
     try {
-        console.log('goods');
+        
         res.json(await checkLists.getGoodsStatus())
     }
     catch (err) { 
-        console.log(err);
+        
         res.json(err)
     }
 });
 
-router.patch("/update", async function (req, res, next) {
+router.put("/update", async function (req, res, next) {
     try {
         res.json(await checkLists.updateCheckLists(req.body))
     }
@@ -80,6 +79,17 @@ router.patch("/update", async function (req, res, next) {
         res.json(err)
     }
 });
+
+router.get("/wso-lists/get", async function (req, res, next) {
+    try {
+        res.json(await checkLists.getWSOLists(req.query))
+
+    }
+    catch (err) { 
+        res.json(err)
+    }
+});
+
 router.patch("/wso-goods/update", async function (req, res, next) {
     try {
         res.json(await checkLists.updateWSOGoodWareHouse(req.body))
@@ -140,9 +150,9 @@ router.patch("/missing-quantity/update", async function (req, res, next) {
 });
 
 
-router.patch("/status/update", async function (req, res, next) {
+router.patch("/is-confirm/update", async function (req, res, next) {
     try {
-        res.json(await checkLists.updateWSOListStatus(req.body))
+        res.json(await checkLists.updateIsConfirm(req.body))
     }
     catch (err) { 
         res.json(err)
@@ -152,6 +162,15 @@ router.patch("/status/update", async function (req, res, next) {
 router.delete("/delete", async function (req, res, next) {
     try {
         res.json(await checkLists.destroyCheckList(req.query))
+    }
+    catch (err) { 
+        res.json(err)
+    }
+});
+
+router.patch("/update/is_confirm", async function (req, res, next) {
+    try {
+        res.json(await checkLists.updateIsConfirm(req.body))
     }
     catch (err) { 
         res.json(err)

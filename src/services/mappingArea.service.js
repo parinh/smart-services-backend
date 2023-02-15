@@ -15,7 +15,7 @@ async function getAllAreaNumber() {
         return a - b;
     });
 
-
+console.log(number_array);
     return (number_array)
 }
 
