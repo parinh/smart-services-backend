@@ -5,103 +5,13 @@ db.sequelize.sync();
 
 async function AddOrdersCost(body) {
     try {
-        console.log('xxxxsssx')
         var toid = body.toid
         var amount = body.summary_cost
         var fuel_percent = body.fuel_percent
-        console.log('cost details:',body.orders[0].cost_detail)
         for (var order of body.orders) {
-            console.log(order.oid);
             for(var i = 1 ; i <= 2 ; i++){ //* สร้าง order_cost มา 2 ตัว ตัวแรกเป็น log ตัวสองตัวแก้
-                console.log('index : ',i)
-                var find = await orders_cost.findOrCreate({
-                    where: {
-                        toid: toid,
-                        oid: order.oid,
-                        sequence:i
-                    },
-                    defaults: {
-                        toid: toid,
-                        oid: order.oid,
-                        sequence:i,
-                        cost_k: order.cost_detail.cost_k,
-                        drop_cost: order.cost_detail.drop_cost,
-                        day_cost: order.cost_detail.day_cost,
-                        distance_cost: order.cost_detail.distance_cost,
-                        sum : order.cost_detail.sum,
-                        amount:amount,
-                        fuel_percent:fuel_percent,
-                        fuel_cost : order.cost_detail.fuel_cost,
-                        branch_id : order.branch_id,
-                        alid: order.alid,
-                        wlid: order.wlid,
-                        cus_po_id: order.cus_po_id,
-                        ship_date: order.ship_date,
-                        sale_id: order.sale_id,
-                        confirm_date: order.confirm_date,
-                        l_no:order.l_no,
-                        job_type: order.job_type,
-                        dead_line_date: order.dead_line_date,
-                        order_type_id: order.order_type_id,
-                        days:order.cost_detail.days,
-                        distance:order.cost_detail.distance,
-                        chance_cost:order.cost_detail.chance_cost,
-                        reimburse_day_cost:order.cost_detail.reimburse_day_cost,
-                        stuck_cost:order.cost_detail.stuck_cost,
-                        back_cost:order.cost_detail.back_cost,
-                        over_distance_cost:order.cost_detail.over_distance_cost,
-                        extra: order.cost_detail.extra,
-                        sub_cost:order.cost_detail.sub_cost,
-                        is_show_cost: order.is_show_cost,
-                        remark: order.remark
-    
-                    }
-                })
-    
-                if (!find[1]) { //* false to update
-                    await orders_cost.update({
-                        toid: toid,
-                        oid: order.oid,
-                        cost_k: order.cost_detail.cost_k,
-                        drop_cost: order.cost_detail.drop_cost,
-                        day_cost: order.cost_detail.day_cost,
-                        distance_cost: order.cost_detail.distance_cost,
-                        sum : order.cost_detail.sum,
-                        amount:amount,
-                        fuel_percent:fuel_percent,
-                        fuel_cost : order.cost_detail.fuel_cost,
-                        branch_id : order.branch_id,
-                        alid: order.alid,
-                        wlid: order.wlid,
-                        cus_po_id: order.cus_po_id,
-                        ship_date: order.ship_date,
-                        sale_id: order.sale_id,
-                        confirm_date: order.confirm_date,
-                        l_no:order.l_no,
-                        job_type: order.job_type,
-                        dead_line_date: order.dead_line_date,
-                        order_type_id: order.order_type_id,
-                        days:order.cost_detail.days,
-                        distance:order.cost_detail.distance,
-                        chance_cost:order.cost_detail.chance_cost,
-                        reimburse_day_cost:order.cost_detail.reimburse_day_cost,
-                        stuck_cost:order.cost_detail.stuck_cost,
-                        back_cost:order.cost_detail.back_cost,
-                        over_distance_cost:order.cost_detail.over_distance_cost,
-                        extra: order.cost_detail.extra,
-                        sub_cost:order.cost_detail.sub_cost,
-                        is_show_cost: order.is_show_cost,
-                        remark: order.remark
-                    }, {
-                        where: {
-                            toid: toid,
-                            oid: order.oid
-                        },
-                    })
-    
-                }
+                await upsertOrderCost(order,amount,fuel_percent,toid,i)
             }
-            
         }
         return {status : 'success'}
     }
@@ -109,6 +19,140 @@ async function AddOrdersCost(body) {
         console.log(err.message);
         return { status: 'error' }
     }
+}
+
+async function upsertOrderCost(order,amount,fuel_percent,toid,i){
+    return new Promise(async(resolve, reject) => {
+        try {
+            var find = await orders_cost.count({
+                where: {
+                    toid: toid,
+                    oid: order.oid,
+                    sequence:i
+                },
+                // defaults: {
+                //     toid: toid,
+                //     oid: order.oid,
+                //     sequence:i,
+                //     cost_k: order.cost_detail.cost_k,
+                //     drop_cost: order.cost_detail.drop_cost,
+                //     day_cost: order.cost_detail.day_cost,
+                //     distance_cost: order.cost_detail.distance_cost,
+                //     sum : order.cost_detail.sum,
+                //     amount:amount,
+                //     fuel_percent:fuel_percent,
+                //     fuel_cost : order.cost_detail.fuel_cost,
+                //     branch_id : order.branch_id,
+                //     alid: order.alid,
+                //     wlid: order.wlid,
+                //     cus_po_id: order.cus_po_id,
+                //     ship_date: order.ship_date,
+                //     sale_id: order.sale_id,
+                //     confirm_date: order.confirm_date,
+                //     l_no:order.l_no,
+                //     job_type: order.job_type,
+                //     dead_line_date: order.dead_line_date,
+                //     order_type_id: order.order_type_id,
+                //     days:order.cost_detail.days,
+                //     distance:order.cost_detail.distance,
+                //     chance_cost:order.cost_detail.chance_cost,
+                //     reimburse_day_cost:order.cost_detail.reimburse_day_cost,
+                //     stuck_cost:order.cost_detail.stuck_cost,
+                //     back_cost:order.cost_detail.back_cost,
+                //     over_distance_cost:order.cost_detail.over_distance_cost,
+                //     extra: order.cost_detail.extra,
+                //     sub_cost:order.cost_detail.sub_cost,
+                //     is_show_cost: order.is_show_cost,
+                //     remark: order.remark
+
+                // }
+            })
+            if (find != 0) { //* false to update
+                // console.log('update');
+                await orders_cost.update({
+                    toid: toid,
+                    oid: order.oid,
+                    cost_k: order.cost_detail.cost_k,
+                    drop_cost: order.cost_detail.drop_cost,
+                    day_cost: order.cost_detail.day_cost,
+                    distance_cost: order.cost_detail.distance_cost,
+                    sum : order.cost_detail.sum,
+                    amount:amount,
+                    fuel_percent:fuel_percent,
+                    fuel_cost : order.cost_detail.fuel_cost,
+                    branch_id : order.branch_id,
+                    alid: order.alid,
+                    wlid: order.wlid,
+                    cus_po_id: order.cus_po_id,
+                    ship_date: order.ship_date,
+                    sale_id: order.sale_id,
+                    confirm_date: order.confirm_date,
+                    l_no:order.l_no,
+                    job_type: order.job_type,
+                    dead_line_date: order.dead_line_date,
+                    order_type_id: order.order_type_id,
+                    days:order.cost_detail.days,
+                    distance:order.cost_detail.distance,
+                    chance_cost:order.cost_detail.chance_cost,
+                    reimburse_day_cost:order.cost_detail.reimburse_day_cost,
+                    stuck_cost:order.cost_detail.stuck_cost,
+                    back_cost:order.cost_detail.back_cost,
+                    over_distance_cost:order.cost_detail.over_distance_cost,
+                    extra: order.cost_detail.extra,
+                    sub_cost:order.cost_detail.sub_cost,
+                    is_show_cost: order.is_show_cost,
+                    remark: order.remark
+                }, {
+                    where: {
+                        toid: toid,
+                        oid: order.oid
+                    },
+                })
+                resolve(true)
+            }
+            else{
+                await orders_cost.create({
+                    toid: toid,
+                    oid: order.oid,
+                    sequence:i,
+                    cost_k: order.cost_detail.cost_k,
+                    drop_cost: order.cost_detail.drop_cost,
+                    day_cost: order.cost_detail.day_cost,
+                    distance_cost: order.cost_detail.distance_cost,
+                    sum : order.cost_detail.sum,
+                    amount:amount,
+                    fuel_percent:fuel_percent,
+                    fuel_cost : order.cost_detail.fuel_cost,
+                    branch_id : order.branch_id,
+                    alid: order.alid,
+                    wlid: order.wlid,
+                    cus_po_id: order.cus_po_id,
+                    ship_date: order.ship_date,
+                    sale_id: order.sale_id,
+                    confirm_date: order.confirm_date,
+                    l_no:order.l_no,
+                    job_type: order.job_type,
+                    dead_line_date: order.dead_line_date,
+                    order_type_id: order.order_type_id,
+                    days:order.cost_detail.days,
+                    distance:order.cost_detail.distance,
+                    chance_cost:order.cost_detail.chance_cost,
+                    reimburse_day_cost:order.cost_detail.reimburse_day_cost,
+                    stuck_cost:order.cost_detail.stuck_cost,
+                    back_cost:order.cost_detail.back_cost,
+                    over_distance_cost:order.cost_detail.over_distance_cost,
+                    extra: order.cost_detail.extra,
+                    sub_cost:order.cost_detail.sub_cost,
+                    is_show_cost: order.is_show_cost,
+                    remark: order.remark
+                })
+                resolve(true)
+            }
+            
+        } catch (error) {
+            reject(error)
+        }
+    })
 }
 
 async function FindOrderCostByTruckOrder(toid){
@@ -159,7 +203,7 @@ async function UpdateOrdersCost(body){
                 amount:amount,
                 fuel_cost : order.fuel_cost,
                 l_no:order.l_no,
-                // days:order.days,
+                days:order.days,
                 chance_cost:order.chance_cost,
                 reimburse_day_cost:order.reimburse_day_cost,
                 stuck_cost:order.stuck_cost,

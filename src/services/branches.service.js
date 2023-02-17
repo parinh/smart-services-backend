@@ -47,22 +47,21 @@ async function updateOneBranches(body) {
 
 async function test() {
     try {
-        //
-        let costs = await orders_cost.findAll({
+        let orders = await orders_cost.findAll({
+            attributes:['oid','toid'],
+            group:['oid','toid']
         })
-        console.log(costs.length); 
-        for (let cost of costs) {
-            console.log(cost.ocid);
-            let new_sum = cost.cost_k + cost.day_cost + cost.distance_cost + cost.drop_cost + cost.fuel_cost + cost.chance_cost + cost.reimburse_day_cost + cost.stuck_cost + cost.back_cost + cost.over_distance_cost + cost.extra + cost.sub_cost
-            let update_result = await orders_cost.update({
-                sum:new_sum
-            },{
-                where: {ocid:cost.ocid}
+        // console.log(orders);
+        for (const order of orders) {
+            // console.log(order.oid);
+            let count = await orders_cost.count({
+                where:{oid:order.oid,toid:order.toid}
             })
-            console.log("result",update_result);
+            if(count > 2){
+                console.log(">>>>>>>>",order.oid);
+            }
         }
-        console.log(costs.length); 
-        return "success"
+        return "succ"
     } catch (error) {
         console.log(error.message);
     }
