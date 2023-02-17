@@ -114,9 +114,18 @@ async function updateShowCost(_orders) {
   }
 }
 
-async function findByProblem() {
+async function findByProblem(status, option) {
   try {
-    var result = await orders.findAll({
+    let page = parseInt(option.page)
+    let itemsPerPage = parseInt(option.itemsPerPage)
+    let query_page = JSON.parse(option.options).query_page
+
+    console.log('page :: ',page);
+    console.log('itemsPerPage :: ',itemsPerPage);
+    console.log('query page :: ',query_page);
+    console.log('status :: ',status);
+
+    var result = await orders.findAndCountAll({
       where: {
         order_type_id: 2,
       },
@@ -125,8 +134,11 @@ async function findByProblem() {
           model: branches,
         },
       ],
+      offset: itemsPerPage * (page - 1),
+      limit: itemsPerPage,
     });
-    return { status: "success", data: result };
+
+    return { status: "success", data: result.rows ,count:result.count };
   } catch (error) {
     return { status: "error", massage: error.massage };
   }
@@ -137,7 +149,7 @@ async function findByStatus(status, option) {
   let itemsPerPage = parseInt(option.itemsPerPage)
   let query_page = JSON.parse(option.options).query_page
 
-  var query_str = { order_status: status };
+    var query_str = { order_status: status };
   if (query_page == "no_confirm_date") {
     console.log(query_page);
     query_str.confirm_date = { [db.op.eq]: null };
@@ -199,6 +211,11 @@ async function searchOrdersByStatus(query) {
     if (options.order_status) {
       query_object_orders.order_status = options.order_status;
     }
+    //*problem page search --------------------
+    if (options.query_page == 'orders-list-problem'){
+      query_object_orders.order_type_id = 2
+    }
+
     //*query string conditions @ orders-----------------------------------------
     if (search_object.select_customer_group) {
       query_object_orders.cus_group_name = { [db.op.substring]: search_object.select_customer_group }
@@ -231,8 +248,10 @@ async function searchOrdersByStatus(query) {
       }
     }
     else {
+      console.log('confirm date gate-keeper : ',search_object.confirm_date);
       if (search_object.confirm_date) {
         query_object_orders.confirm_date = { [db.op.between]: [search_object.confirm_date[0], search_object.confirm_date[1]] }
+        console.log('xxx :: ',query_object_orders.confirm_date);
       }
     }
 
@@ -252,24 +271,33 @@ async function searchOrdersByStatus(query) {
     if (search_object.zip_code) {
       query_object_branches.zip_code = { [db.op.substring]: search_object.zip_code }
     }
+    if (search_object.branch_id) {
+      query_object_branches.branch_code = { [db.op.substring]: search_object.branch_id }
+    }
+    console.log('yyy :: ',query_object_orders.confirm_date);
     let result = await orders.findAndCountAll({
       order: [["oid", "DESC"]],
       where: {
         [db.op.and]: query_object_orders
       },
-      include: [{
-        model: branches,
-        where: {
-          [db.op.and]: query_object_branches,
+      include: [
+        {
+          model: branches,
+          where: {
+            [db.op.and]: query_object_branches,
+          },
+          require: true
         },
-        require: true
-      }, {
-        model: truck_orders,
-        require: false
-      }],
+        {
+          model: truck_orders,
+          require: false
+        }
+      ],
+
       offset: itemsPerPage * (page - 1),
       limit: itemsPerPage,
     })
+
     return {
       status: "success",
       data: result.rows,
@@ -1322,6 +1350,61 @@ async function dailyMonitoring(query){
 //     return { status: "error" };
 //   }
 // }
+async function duplicate(query){
+  try {
+    oid = query.oid
+    number = query.number
+    console.log(oid);
+    console.log(number);
+    
+    let result = await orders.findAll({
+      where:{
+        oid:oid
+      }
+    })
+    let result_data_values = result[0]
+    console.log(result_data_values);
+    for(let i = 0;i<number;i++){
+      console.log(i);
+      let dup = await orders.create({
+        cus_group_name: result_data_values.cus_group_name,
+        branch_id: result_data_values.branch_id,
+        alid: result_data_values.alid,
+        wlid: result_data_values.wlid,
+        cus_po_id: result_data_values.cus_po_id,
+        sale_id: result_data_values.sale_id,
+        ship_date: result_data_values.ship_date,
+        order_status: result_data_values.order_status,
+        created_by: result_data_values.created_by,
+        created_at: result_data_values.created_at,
+        updated_at: result_data_values.updated_at,
+        confirm_date: result_data_values.confirm_date,
+        l_no: result_data_values.l_no,
+        job_type: result_data_values.job_type,
+        dead_line_date: result_data_values.dead_line_date,
+        order_type_id: result_data_values.order_type_id,
+        aso_file: result_data_values.aso_file,
+        wso_file: result_data_values.wso_file,
+        spec_sheet_file: result_data_values.spec_sheet_file,
+        other_files: result_data_values.other_files,
+        toid: result_data_values.toid,
+        is_show_cost: result_data_values.is_show_cost,
+        remark: result_data_values.remark,
+        order_code: result_data_values.order_code,
+        problem_remark: result_data_values.problem_remark,
+        problems: result_data_values.problems
+      })      
+    }
+
+    return {
+      status:'success',
+      number:number
+    }
+
+  } catch (error) {
+    
+  }
+}
 
 
 module.exports = {
@@ -1353,5 +1436,6 @@ module.exports = {
   test,
   searchOrdersByStatus,
   getDataMove,
-  dailyMonitoring
+  dailyMonitoring,
+  duplicate
 };

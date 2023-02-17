@@ -4,6 +4,11 @@ db.sequelize.sync();
 
 async function findAll() {
     let result = await branches.findAll({
+        order: [
+            ['province', 'ASC'],
+            ['district_name', 'ASC'],
+            ['sub_district_name', 'ASC'],
+        ],
     });
     return (result)
 }
