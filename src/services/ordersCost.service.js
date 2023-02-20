@@ -72,18 +72,18 @@ async function upsertOrderCost(order,amount,fuel_percent,toid,i){
                 await orders_cost.update({
                     toid: toid,
                     oid: order.oid,
-                    cost_k: order.cost_detail.cost_k,
-                    drop_cost: order.cost_detail.drop_cost,
-                    day_cost: order.cost_detail.day_cost,
-                    distance_cost: order.cost_detail.distance_cost,
-                    sum : order.cost_detail.sum,
-                    amount:amount,
+                    cost_k: order.cost_detail.cost_k ?? 0,
+                    drop_cost: order.cost_detail.drop_cost ?? 0,
+                    day_cost: order.cost_detail.day_cost ?? 0,
+                    distance_cost: order.cost_detail.distance_cost ?? 0,
+                    sum : order.cost_detail.sum ?? 0,
+                    amount:amount ,
                     fuel_percent:fuel_percent,
-                    fuel_cost : order.cost_detail.fuel_cost,
+                    fuel_cost : order.cost_detail.fuel_cost ?? 0,
                     branch_id : order.branch_id,
-                    alid: order.alid,
-                    wlid: order.wlid,
-                    cus_po_id: order.cus_po_id,
+                    alid: order.alid ,
+                    wlid: order.wlid ,
+                    cus_po_id: order.cus_po_id ,
                     ship_date: order.ship_date,
                     sale_id: order.sale_id,
                     confirm_date: order.confirm_date,
@@ -91,15 +91,15 @@ async function upsertOrderCost(order,amount,fuel_percent,toid,i){
                     job_type: order.job_type,
                     dead_line_date: order.dead_line_date,
                     order_type_id: order.order_type_id,
-                    days:order.cost_detail.days,
-                    distance:order.cost_detail.distance,
-                    chance_cost:order.cost_detail.chance_cost,
-                    reimburse_day_cost:order.cost_detail.reimburse_day_cost,
-                    stuck_cost:order.cost_detail.stuck_cost,
-                    back_cost:order.cost_detail.back_cost,
-                    over_distance_cost:order.cost_detail.over_distance_cost,
-                    extra: order.cost_detail.extra,
-                    sub_cost:order.cost_detail.sub_cost,
+                    days:order.cost_detail.days ?? 0,
+                    distance:order.cost_detail.distance ?? 0,
+                    chance_cost:order.cost_detail.chance_cost ?? 0,
+                    reimburse_day_cost:order.cost_detail.reimburse_day_cost ?? 0,
+                    stuck_cost:order.cost_detail.stuck_cost ?? 0,
+                    back_cost:order.cost_detail.back_cost ?? 0,
+                    over_distance_cost:order.cost_detail.over_distance_cost ?? 0,
+                    extra: order.cost_detail.extra ?? 0,
+                    sub_cost:order.cost_detail.sub_cost ?? 0,
                     is_show_cost: order.is_show_cost,
                     remark: order.remark
                 }, {
@@ -115,18 +115,18 @@ async function upsertOrderCost(order,amount,fuel_percent,toid,i){
                     toid: toid,
                     oid: order.oid,
                     sequence:i,
-                    cost_k: order.cost_detail.cost_k,
-                    drop_cost: order.cost_detail.drop_cost,
-                    day_cost: order.cost_detail.day_cost,
-                    distance_cost: order.cost_detail.distance_cost,
-                    sum : order.cost_detail.sum,
-                    amount:amount,
+                    cost_k: order.cost_detail.cost_k ?? 0,
+                    drop_cost: order.cost_detail.drop_cost ?? 0,
+                    day_cost: order.cost_detail.day_cost ?? 0,
+                    distance_cost: order.cost_detail.distance_cost ?? 0,
+                    sum : order.cost_detail.sum ?? 0,
+                    amount:amount ,
                     fuel_percent:fuel_percent,
-                    fuel_cost : order.cost_detail.fuel_cost,
+                    fuel_cost : order.cost_detail.fuel_cost ?? 0,
                     branch_id : order.branch_id,
-                    alid: order.alid,
-                    wlid: order.wlid,
-                    cus_po_id: order.cus_po_id,
+                    alid: order.alid ,
+                    wlid: order.wlid ,
+                    cus_po_id: order.cus_po_id ,
                     ship_date: order.ship_date,
                     sale_id: order.sale_id,
                     confirm_date: order.confirm_date,
@@ -134,15 +134,15 @@ async function upsertOrderCost(order,amount,fuel_percent,toid,i){
                     job_type: order.job_type,
                     dead_line_date: order.dead_line_date,
                     order_type_id: order.order_type_id,
-                    days:order.cost_detail.days,
-                    distance:order.cost_detail.distance,
-                    chance_cost:order.cost_detail.chance_cost,
-                    reimburse_day_cost:order.cost_detail.reimburse_day_cost,
-                    stuck_cost:order.cost_detail.stuck_cost,
-                    back_cost:order.cost_detail.back_cost,
-                    over_distance_cost:order.cost_detail.over_distance_cost,
-                    extra: order.cost_detail.extra,
-                    sub_cost:order.cost_detail.sub_cost,
+                    days:order.cost_detail.days ?? 0,
+                    distance:order.cost_detail.distance ?? 0,
+                    chance_cost:order.cost_detail.chance_cost ?? 0,
+                    reimburse_day_cost:order.cost_detail.reimburse_day_cost ?? 0,
+                    stuck_cost:order.cost_detail.stuck_cost ?? 0,
+                    back_cost:order.cost_detail.back_cost ?? 0,
+                    over_distance_cost:order.cost_detail.over_distance_cost ?? 0,
+                    extra: order.cost_detail.extra ?? 0,
+                    sub_cost:order.cost_detail.sub_cost ?? 0,
                     is_show_cost: order.is_show_cost,
                     remark: order.remark
                 })
@@ -294,10 +294,27 @@ async function resetOrderCostToSeqOne(toid){
     
 }
 
+async function deleteOrderCost(toid,oid){
+    try {
+        await orders_cost.destroy({
+            where:{toid:toid,oid:oid}
+        })
+        return({
+            status:'success'
+        })
+    } catch (error) {
+        return({
+            status:'error'
+        })
+    }
+    
+}
+
 
 module.exports = {
     AddOrdersCost,
     FindOrderCostByTruckOrder,
     UpdateOrdersCost,
-    resetOrderCostToSeqOne
+    resetOrderCostToSeqOne,
+    deleteOrderCost
 }

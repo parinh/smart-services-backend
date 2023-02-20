@@ -1,4 +1,5 @@
 const TruckOrdersService = require('../services/truckOrders.service')
+const OrdersCostService = require('../services/ordersCost.service')
 const express = require('express');
 const router = express.Router();
 
@@ -136,6 +137,7 @@ router.patch("/remove/order",async function (req, res, next){
     try{
         let toid = req.body.toid
         let oid = req.body.oid
+        await OrdersCostService.deleteOrderCost(toid,oid)
         res.json(await TruckOrdersService.removeOrder(toid,oid))
     }
     catch (err){
