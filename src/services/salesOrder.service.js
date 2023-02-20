@@ -233,7 +233,7 @@ async function searchOrdersByStatus(query) {
       query_object_orders.sale_id = { [db.op.substring]: search_object.sale_id }
     }
     if (search_object.dead_line_date) {
-      query_object_orders.dead_line_date = { [db.op.between]: [search_object.dead_line_date[0], search_object.dead_line_date[1]] }
+      query_object_orders.confirm_date = { [db.op.between]: [moment(search_object.dead_line_date[0],'YYYY-MM-DD'), moment(search_object.dead_line_date[0],'YYYY-MM-DD')] }
     }
 
     if (options.query_page == "no_confirm_date") {
@@ -241,16 +241,17 @@ async function searchOrdersByStatus(query) {
     }
     else if (options.query_page == "confirm_date") {
       if (search_object.confirm_date) {
-        query_object_orders.confirm_date = { [db.op.between]: [search_object.confirm_date[0], search_object.confirm_date[1]] }
+        query_object_orders.confirm_date = { [db.op.between]: [moment(search_object.confirm_date[0],'YYYY-MM-DD'), moment(search_object.confirm_date[0],'YYYY-MM-DD')] }
+
       }
       else {
         query_object_orders.confirm_date = { [db.op.ne]: null };
       }
     }
     else {
-      console.log('confirm date gate-keeper : ',search_object.confirm_date);
+      // console.log('confirm date gate-keeper : ',search_object.confirm_date);
       if (search_object.confirm_date) {
-        query_object_orders.confirm_date = { [db.op.between]: [search_object.confirm_date[0], search_object.confirm_date[1]] }
+        query_object_orders.confirm_date = { [db.op.between]: [moment(search_object.confirm_date[0],'YYYY-MM-DD'), moment(search_object.confirm_date[0],'YYYY-MM-DD')] }
         console.log('xxx :: ',query_object_orders.confirm_date);
       }
     }
@@ -274,7 +275,7 @@ async function searchOrdersByStatus(query) {
     if (search_object.branch_id) {
       query_object_branches.branch_code = { [db.op.substring]: search_object.branch_id }
     }
-    console.log('yyy :: ',query_object_orders.confirm_date);
+    console.log('yyy :: ',query_object_orders);
     let result = await orders.findAndCountAll({
       order: [["oid", "DESC"]],
       where: {
@@ -1363,7 +1364,7 @@ async function duplicate(query){
       }
     })
     let result_data_values = result[0]
-    console.log(result_data_values);
+    // console.log(result_data_values);
     for(let i = 0;i<number;i++){
       console.log(i);
       let dup = await orders.create({

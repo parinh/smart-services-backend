@@ -122,7 +122,7 @@ async function searchTruckOrdersBySearchObjects(query) {
   let require_branches_model = false
   let require_vehicle_type_model = false
 
-  console.log("search_object : ",search_object);
+  console.log("search_object : ",typeof(search_object.start_date[0]));
   // console.log("page : ",page);
   // console.log("itemsPerPage : ",itemsPerPage);
   // console.log("options : ",options);
@@ -164,8 +164,9 @@ async function searchTruckOrdersBySearchObjects(query) {
       query_object_truck_orders.push({
         start_date: {
           [db.op.between]: [
-            search_object.start_date[0],
-            search_object.start_date[1],
+            moment(search_object.start_date[0],'YYYY-MM-DD'),
+            moment(search_object.start_date[1],'YYYY-MM-DD'),
+            // search_object.start_date[1],
           ],
         },
       });
@@ -214,7 +215,7 @@ async function searchTruckOrdersBySearchObjects(query) {
       };
     }
 
-    console.log("truck order : ", query_object_truck_orders);
+    console.log("truck order : ", query_object_truck_orders[1]);
     console.log("order : ", query_object_orders);
     console.log("member_option : ", query_object_member_options);
     console.log("branch : ", query_object_branches);
