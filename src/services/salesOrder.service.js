@@ -1353,10 +1353,11 @@ async function dailyMonitoring(query){
 // }
 async function duplicate(query){
   try {
+
     oid = query.oid
     number = query.number
-    console.log(oid);
-    console.log(number);
+    console.log('oid',oid);
+    console.log('number',number);
     
     let result = await orders.findAll({
       where:{
