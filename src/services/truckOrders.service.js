@@ -534,22 +534,22 @@ async function update(toid, body) {
 
 async function destroy(toid) {
   try {
-    let order = await orders.findOne({
-      attributes: ["wlid"],
-      where: { toid: toid },
-    });
-    // this.updateShortageGoods(order.wlid)
-    await orders.update(
-      {
-        toid: null,
-        order_status: 2,
-      },
-      {
-        where: {
-          toid: toid,
-        },
-      }
-    );
+    // let order = await orders.findOne({
+    //   attributes: ["wlid"],
+    //   where: { toid: toid },
+    // });
+    // // this.updateShortageGoods(order.wlid)
+    // await orders.update(
+    //   {
+    //     toid: null,
+    //     order_status: 2,
+    //   },
+    //   {
+    //     where: {
+    //       toid: toid,
+    //     },
+    //   }
+    // );
     let result = await truck_orders.destroy({
       where: {
         toid: toid,
@@ -557,7 +557,7 @@ async function destroy(toid) {
     });
     return { status: "success" };
   } catch (err) {
-    return err;
+    return { status: "error", data: err };
   }
 }
 
