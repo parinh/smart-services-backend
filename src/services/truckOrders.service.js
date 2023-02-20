@@ -16,6 +16,7 @@ const {
   cost_k_type,
   l_no_details,
 } = db;
+
 db.sequelize.sync();
 let l_no = "0";
 
@@ -503,6 +504,7 @@ async function create(body) {
 
 async function update(toid, body) {
   try {
+    console.log(body);
     await truck_orders.update(
       {
         mbid: body.mbid,
