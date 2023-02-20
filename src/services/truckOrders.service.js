@@ -504,7 +504,6 @@ async function create(body) {
 
 async function update(toid, body) {
   try {
-    console.log(body);
     await truck_orders.update(
       {
         mbid: body.mbid,

@@ -210,7 +210,8 @@ async function UpdateOrdersCost(body){
                 back_cost:order.back_cost,
                 over_distance_cost:order.over_distance_cost,
                 extra: order.extra,
-                sub_cost:order.sub_cost
+                sub_cost:order.sub_cost,
+                is_show_cost:order.is_show_cost
             }, {
                 where: {
                     toid: toid,
