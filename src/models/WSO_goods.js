@@ -11,7 +11,7 @@ module.exports = (sequelize, Sequelize) => {
       wso_good_price: { type: Sequelize.INTEGER(20), allowNull: true, field: 'wso_good_price' },
       wso_good_amount: { type: Sequelize.FLOAT(20, 5), allowNull: true, field: 'wso_good_amount' },
       missing_quantity: { type: Sequelize.INTEGER(20), allowNull: true, field: 'missing_quantity' },
-      // warehouse_id: { type: Sequelize.INTEGER(11), defaultValue: 1, field: 'warehouse_id' },
+      warehouse_id: { type: Sequelize.INTEGER(11), defaultValue: 1, field: 'warehouse_id' },
 
     },
     {
