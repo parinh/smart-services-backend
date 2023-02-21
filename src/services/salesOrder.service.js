@@ -520,6 +520,7 @@ async function create_by_form(body, files = "") {
 
     return { status: "success" };
   } catch (err) {
+    console.log(err);
     return { status: "error", data: err.message };
   }
 }
