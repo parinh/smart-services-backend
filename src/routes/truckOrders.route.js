@@ -1,4 +1,5 @@
 const TruckOrdersService = require('../services/truckOrders.service')
+const OrdersCostService = require('../services/ordersCost.service')
 const express = require('express');
 const router = express.Router();
 
@@ -18,15 +19,23 @@ router.get("/get", async function (req, res, next) {
 
 router.get("/get/status", async function (req, res, next) {
     try {
-        
-        let status_arr = req.query.status.split (',')
-        
-        res.json(await TruckOrdersService.findAll(status_arr))
+        res.json(await TruckOrdersService.findAll(req.query))
     }
     catch (err) { 
         res.json(err)
     }
 });
+
+//*todo : search truck-orders ----------------------------------------------------------------
+router.get("/get/searchTruckOrders", async function (req, res, next) {
+    try {
+        res.json(await TruckOrdersService.searchTruckOrdersBySearchObjects(req.query))
+    }
+    catch (err) { 
+        res.json(err)
+    }
+});
+//*todo : search truck-orders ----------------------------------------------------------------
 
 router.get("/get/daily/:date", async function (req, res, next) {
     try {
@@ -128,6 +137,7 @@ router.patch("/remove/order",async function (req, res, next){
     try{
         let toid = req.body.toid
         let oid = req.body.oid
+        await OrdersCostService.deleteOrderCost(toid,oid)
         res.json(await TruckOrdersService.removeOrder(toid,oid))
     }
     catch (err){

@@ -59,6 +59,25 @@ async function groupSubContract() {
         }
     }
 }
+//*================================================================
+async function groupMemberOptions() {
+    try {
+        let result = await member_options.findAll({
+            attributes: ['name','plate_number','mbid'],
+        })
+        return {
+            status: 'success',
+            data: result
+        }
+    }
+    catch (err) {
+
+        return {
+            status: 'error'
+        }
+    }
+}
+//*================================================================
 
 
 async function findMonthlyData(params) {
@@ -142,5 +161,6 @@ module.exports = {
     findByID,
     findByVehicle,
     groupSubContract,
-    findMonthlyData
+    findMonthlyData,
+    groupMemberOptions
 }

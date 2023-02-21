@@ -87,7 +87,8 @@ router.get("/get", async function (req, res, next) {
 
 router.get("/get/problem", async function (req, res, next) {
     try {
-        res.json(await salesOrderServices.findByProblem())
+        let order_status = JSON.parse(req.query.options).order_status
+        res.json(await salesOrderServices.findByProblem(order_status, req.query))
 
     }
     catch (err) {
@@ -216,6 +217,17 @@ router.post("/create/order-form", async function (req, res, next) {
         res.json(err)
     }
 })
+
+//todo:dup front
+router.get("/create/duplicate/", async function (req, res, next) {
+    try {
+        res.json(await salesOrderServices.duplicate(req.query))
+    }
+    catch (err) {
+        res.json(err)
+    }
+})
+//todo
 
 router.post("/create/order-set", async function (req, res, next) {
     try {

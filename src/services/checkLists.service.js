@@ -504,11 +504,11 @@ function addProblems(good, wlid) {
                     types.push(...arr)
                 })
                 types = [...new Set(types)]; //* เอาตัวซ้ำออก
-                console.log(types);
+
+
                 if (types.length == 0) {
                     types = null
                 }
-
                 for(let [key,value] of good_problems_hm){
                     await WSO_goods.update({
                         problems: value

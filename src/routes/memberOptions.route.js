@@ -23,6 +23,17 @@ router.get("/get/sub_contract", async function (req, res, next) {
         res.json(err)
     }
 });
+//*=============================================================
+router.get("/get/membersOptions", async function (req, res, next) {
+    try {
+        
+        res.json(await MemberOptionsService.groupMemberOptions())
+    }
+    catch (err) { 
+        res.json(err)
+    }
+});
+//*=============================================================
 
 router.get("/get/monthly", async function (req, res, next) {
     try {

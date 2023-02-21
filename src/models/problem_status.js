@@ -5,7 +5,7 @@ module.exports = (sequelize, Sequelize) => {
   
         problem_id:{type: Sequelize.INTEGER(11), primaryKey: true, autoIncrement: true, field: 'problem_id' },
         name:{type: Sequelize.TEXT, primaryKey: true,field: 'name' },
-        type:{type: Sequelize.STRING(255), primaryKey: true,field: 'type' },
+        type:{type: Sequelize.JSON, primaryKey: true,field: 'type' },
 
   
       },
