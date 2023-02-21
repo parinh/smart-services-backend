@@ -14,7 +14,7 @@ module.exports = (sequelize, Sequelize) => {
       lat:{type: Sequelize.DECIMAL(10,7), allowNull: true, field: 'lat'},
       lng:{type: Sequelize.DECIMAL(10,7), allowNull: true, field: 'lng'},
       cont_name:{type: Sequelize.STRING(255), allowNull: true, field: 'cont_name' },
-      cont_tel:{type: Sequelize.STRING(15), allowNull: true, field: 'cont_tel'},
+      cont_tel:{type: Sequelize.STRING(100), allowNull: true, field: 'cont_tel'},
       zone:{type: Sequelize.STRING(5), allowNull: true, field: 'zone'},
       l_no:{type: Sequelize.INTEGER(5),allowNull: true,field: 'l_no' },
 
