@@ -1261,13 +1261,13 @@ async function dailyMonitoring(query){
     let query_object = JSON.parse(query.query_object);
     console.log(query_object);
     orders_query = {}
-    truck_orders_query = {}
+    let truck_orders_query = {}
     orders_query.toid = { [db.op.ne] : null}
     if(query_object.job_types){
       orders_query.job_type = { [db.op.substring]: query_object.job_types }
     }
     if(query_object.date_range){
-      truck_orders_query.start_date = { [db.op.between]: [query_object.date_range[0], query_object.date_range[1]] }
+      truck_orders_query.start_date = { [db.op.between]: [moment(query_object.date_range[0],'YYYY-MM-DD'), moment(query_object.date_range[1],'YYYY-MM-DD')] }
     }
     result = await orders.findAll({
       where: orders_query,
