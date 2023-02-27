@@ -233,7 +233,7 @@ async function searchOrdersByStatus(query) {
       query_object_orders.sale_id = { [db.op.substring]: search_object.sale_id }
     }
     if (search_object.dead_line_date) {
-      query_object_orders.confirm_date = { [db.op.between]: [moment(search_object.dead_line_date[0],'YYYY-MM-DD'), moment(search_object.dead_line_date[0],'YYYY-MM-DD')] }
+      query_object_orders.confirm_date = { [db.op.between]: [moment(search_object.dead_line_date[0],'YYYY-MM-DD'), moment(search_object.dead_line_date[1],'YYYY-MM-DD')] }
     }
 
     if (options.query_page == "no_confirm_date") {
@@ -241,7 +241,7 @@ async function searchOrdersByStatus(query) {
     }
     else if (options.query_page == "confirm_date") {
       if (search_object.confirm_date) {
-        query_object_orders.confirm_date = { [db.op.between]: [moment(search_object.confirm_date[0],'YYYY-MM-DD'), moment(search_object.confirm_date[0],'YYYY-MM-DD')] }
+        query_object_orders.confirm_date = { [db.op.between]: [moment(search_object.confirm_date[0],'YYYY-MM-DD'), moment(search_object.confirm_date[1],'YYYY-MM-DD')] }
 
       }
       else {
@@ -249,9 +249,10 @@ async function searchOrdersByStatus(query) {
       }
     }
     else {
-      // console.log('confirm date gate-keeper : ',search_object.confirm_date);
+      console.log('options : ',options);
+      console.log('date : ',search_object.confirm_date);
       if (search_object.confirm_date) {
-        query_object_orders.confirm_date = { [db.op.between]: [moment(search_object.confirm_date[0],'YYYY-MM-DD'), moment(search_object.confirm_date[0],'YYYY-MM-DD')] }
+        query_object_orders.confirm_date = { [db.op.between]: [moment(search_object.confirm_date[0],'YYYY-MM-DD'), moment(search_object.confirm_date[1],'YYYY-MM-DD')] }
         console.log('xxx :: ',query_object_orders.confirm_date);
       }
     }
@@ -1336,16 +1337,17 @@ async function dailyMonitoring(query){
   try {
     let query_object = JSON.parse(query.query_object);
     console.log(query_object);
-    orders_query = {}
-    truck_orders_query = {}
+    let orders_query = {}
+    let truck_orders_query = {}
     orders_query.toid = { [db.op.ne] : null}
+    orders_query.sequence = 2
     if(query_object.job_types){
       orders_query.job_type = { [db.op.substring]: query_object.job_types }
     }
     if(query_object.date_range){
-      truck_orders_query.start_date = { [db.op.between]: [query_object.date_range[0], query_object.date_range[1]] }
+      truck_orders_query.start_date = { [db.op.between]: [moment(query_object.date_range[0],'YYYY-MM-DD'), moment(query_object.date_range[1],'YYYY-MM-DD')] }
     }
-    result = await orders.findAll({
+    result = await orders_cost.findAll({
       where: orders_query,
       include:[
         {
@@ -1431,11 +1433,10 @@ async function dailyMonitoring(query){
 // }
 async function duplicate(query){
   try {
-
     oid = query.oid
     number = query.number
-    console.log('oid',oid);
-    console.log('number',number);
+    console.log(oid);
+    console.log(number);
     
     let result = await orders.findAll({
       where:{
