@@ -1,6 +1,7 @@
 const db = require("../configs/sql.config");
 const moment = require("moment");
 const jwt_service = require("../services/jwt.service");
+const { customer_groups, job_type_options } = require("../configs/sql.config");
 const {
   orders_cost,
   truck_orders,
@@ -552,11 +553,16 @@ async function destroy(toid) {
     //     },
     //   }
     // );
-    let result = await truck_orders.destroy({
-      where: {
-        toid: toid,
+    let result = await truck_orders.update(
+      {
+        to_status:0
       },
-    });
+      {
+        where: {
+          toid: toid,
+        },
+      }
+    );
     return { status: "success" };
   } catch (err) {
     return { status: "error", data: err };
@@ -853,6 +859,63 @@ async function searchByTruckCode(params) {
   }
 }
 
+async function operationsReport(query){
+  try {
+    console.log(query);
+    let start_date = JSON.parse(query);
+    let query_str = {}
+    query_str.to_status = 8
+    if (start_date) {
+      query_str.start_date = { [db.op.between]: [moment(start_date[0],'YYYY-MM-DD'), moment(start_date[1],'YYYY-MM-DD')] }
+    }
+
+    // let map_table = []
+    // _cus_group_name.forEach(name => {
+    //   let map1 = new Map()
+    //   let map2 = new Map()
+    //   _job_type_option.forEach(type => {
+    //     map2.set(type.value,0)
+    //   })
+    //   map1.set(name.cus_group_name,Object.fromEntries(map2))
+    //   map_table.push(Object.fromEntries(map1))
+    // });
+
+    let results = await truck_orders.findAll({
+      where:query_str,
+      include: [
+        {
+            model: orders_cost,
+            require: true,
+            where: {
+                sequence: 2,
+                is_show_cost:1
+            },
+            include: [
+                { model: branches }
+            ]
+        },
+        {
+            model: member_options,
+            require: true,
+            include: [
+                {
+                    model: vehicle_types
+                }
+            ]
+        },
+      ]
+    })
+
+    return {
+      status:'success',
+      data:results,
+    }
+  } catch (error) {
+    console.log(error);
+    return error.message
+  }
+}
+
 module.exports = {
   setLNo,
   create,
@@ -872,6 +935,7 @@ module.exports = {
   getCostDetail,
   searchByTruckCode,
   searchTruckOrdersBySearchObjects,
+  operationsReport
 };
 
 //! กลับมาไล่ทำ return ให้มันมี status ด้วย

@@ -182,6 +182,14 @@ router.get("/search", async function (req, res, next) {
     }
 })
 
+router.get("/operationsReport", async function (req, res, next) {
+    try {
+        res.json(await TruckOrdersService.operationsReport(req.query.start_date))
+    }
+    catch (err) {
+        res.json(err)
+    }
+});
 
 
 
